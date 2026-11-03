@@ -5,6 +5,7 @@ import { DirectionStops } from "./DirectionStops";
 import { RouteDirectory } from "./RouteDirectory";
 import { Banner } from "./Banner";
 import { AssistantCard } from "./AssistantCard";
+import { TripPlanner } from "./TripPlanner";
 import { LiveMap } from "../LiveMap";
 
 const popularStops = ["লালদীঘি", "জিইসি", "কোতোয়ালী মোড়", "বহদ্দারহাট"];
@@ -127,6 +128,8 @@ export function PassengerHome({
           </div>
         ) : null}
       </section>
+
+      <TripPlanner language={language} />
 
       {submittedQuery ? (
         <section

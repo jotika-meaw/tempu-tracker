@@ -27,6 +27,9 @@ const codeToKey: Record<string, MessageKey> = {
   CORS_NOT_ALLOWED: "errorCors",
   INVALID_RESPONSE: "errorInvalidResponse",
   PAYLOAD_TOO_LARGE: "errorInvalidRequest",
+  INVALID_AUDIO: "errorVoiceAudio",
+  TRANSCRIPT_EMPTY: "errorVoiceEmpty",
+  AI_REQUEST_REJECTED: "errorAiUnavailable",
 };
 
 export function describeApiError(

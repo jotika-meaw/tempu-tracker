@@ -7,6 +7,7 @@ import type {
   LocationPayload,
   StartTrackingInput,
   StartTrackingResponse,
+  TranscribeResponse,
 } from "./types";
 
 /**
@@ -253,6 +254,22 @@ export async function askAssistant(
       method: "POST",
       body: JSON.stringify({ message, language }),
     },
-    25_000
+    45_000
+  );
+}
+
+/** Send one recorded question (16 kHz mono PCM16) to Muse Voice. */
+export async function transcribeAudio(
+  pcm: ArrayBuffer,
+  language: AiLanguage
+): Promise<TranscribeResponse> {
+  return requestJson<TranscribeResponse>(
+    `/api/transcribe?language=${encodeURIComponent(language)}`,
+    {
+      method: "POST",
+      body: pcm,
+      headers: { "Content-Type": "application/octet-stream" },
+    },
+    60_000
   );
 }

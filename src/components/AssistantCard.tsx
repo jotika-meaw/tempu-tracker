@@ -1,8 +1,13 @@
-import { useRef, useState, type FormEvent } from "react";
-import { askAssistant } from "../api/client";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { askAssistant, transcribeAudio } from "../api/client";
 import type { AiLanguage } from "../api/types";
 import { t, type UiLanguage } from "../i18n";
 import { describeApiError } from "../lib/errors";
+import {
+  startVoiceRecording,
+  voiceInputSupported,
+  type VoiceRecording,
+} from "../lib/recorder";
 import { Banner } from "./Banner";
 
 type AssistantCardProps = {
@@ -16,6 +21,8 @@ const samples: Array<{ key: "assistantSample1" | "assistantSample2" | "assistant
   { key: "assistantSample3" },
 ];
 
+type VoiceState = "idle" | "recording" | "transcribing" | "done";
+
 export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
   const [message, setMessage] = useState("");
   const [answerLanguage, setAnswerLanguage] = useState<AiLanguage>(language);
@@ -24,9 +31,51 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [questionError, setQuestionError] = useState(false);
+  const [toolCalls, setToolCalls] = useState<string[]>([]);
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState("");
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const recordingRef = useRef<VoiceRecording | null>(null);
 
   const aiDisabled = aiConfigured === false;
+  const voiceSupported = voiceInputSupported();
+
+  useEffect(() => () => recordingRef.current?.cancel(), []);
+
+  async function stopVoice() {
+    const recording = recordingRef.current;
+    if (!recording) return;
+    recordingRef.current = null;
+    setVoiceState("transcribing");
+
+    try {
+      const pcm = await recording.stop();
+      const result = await transcribeAudio(pcm, answerLanguage);
+      setMessage(result.transcript);
+      setQuestionError(false);
+      setVoiceState("done");
+      inputRef.current?.focus();
+    } catch (voiceFailure) {
+      setVoiceError(describeApiError(voiceFailure, language));
+      setVoiceState("idle");
+    }
+  }
+
+  async function toggleVoice() {
+    if (voiceState === "recording") {
+      await stopVoice();
+      return;
+    }
+
+    setVoiceError("");
+    try {
+      recordingRef.current = await startVoiceRecording(() => void stopVoice());
+      setVoiceState("recording");
+    } catch {
+      setVoiceError(t(language, "assistantVoiceDenied"));
+      setVoiceState("idle");
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,12 +92,14 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
     setError("");
     setAnswer("");
     setModel("");
+    setToolCalls([]);
     setLoading(true);
 
     try {
       const result = await askAssistant(trimmed, answerLanguage);
       setAnswer(result.answer);
       setModel(result.model);
+      setToolCalls(result.toolCalls ?? []);
     } catch (requestError) {
       setError(describeApiError(requestError, language));
     } finally {
@@ -108,6 +159,22 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
           placeholder={t(language, "assistantPlaceholder")}
         />
         <div className="assistant-form-footer">
+          {voiceSupported ? (
+            <button
+              className={`button button-secondary button-small voice-button${
+                voiceState === "recording" ? " voice-button-recording" : ""
+              }`}
+              type="button"
+              onClick={() => void toggleVoice()}
+              disabled={aiDisabled || loading || voiceState === "transcribing"}
+              aria-pressed={voiceState === "recording"}
+            >
+              <span aria-hidden="true">{voiceState === "recording" ? "■" : "🎙"}</span>{" "}
+              {voiceState === "recording"
+                ? t(language, "assistantVoiceStop")
+                : t(language, "assistantVoiceStart")}
+            </button>
+          ) : null}
           <span className="character-count">{message.length}/1000</span>
           <button
             className="button button-primary"
@@ -119,6 +186,20 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
           </button>
         </div>
       </form>
+
+      {voiceState !== "idle" || voiceError ? (
+        <p
+          className={`field-note${voiceError ? " voice-error" : ""}`}
+          role={voiceError ? "alert" : "status"}
+        >
+          {voiceError ||
+            (voiceState === "recording"
+              ? t(language, "assistantVoiceRecording")
+              : voiceState === "transcribing"
+                ? t(language, "assistantVoiceTranscribing")
+                : t(language, "assistantVoiceDone"))}
+        </p>
+      ) : null}
 
       {questionError ? (
         <div className="inline-notice inline-notice-warning" role="alert">
@@ -153,6 +234,13 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
           <>
             <h3>{t(language, "assistantAnswerLabel")}</h3>
             <p className="assistant-answer-text">{answer}</p>
+            {toolCalls.length > 0 ? (
+              <p className="assistant-model">
+                {t(language, "assistantToolsUsed", {
+                  tools: [...new Set(toolCalls)].join(", "),
+                })}
+              </p>
+            ) : null}
             {model ? (
               <p className="assistant-model">
                 {t(language, "assistantModel", { model })}
@@ -175,6 +263,9 @@ export function AssistantCard({ language, aiConfigured }: AssistantCardProps) {
 
       <p className="assistant-footnote">{t(language, "assistantDisclaimer")}</p>
       <p className="assistant-footnote">{t(language, "assistantLiveNote")}</p>
+      {voiceSupported ? (
+        <p className="assistant-footnote">{t(language, "assistantVoicePrivacy")}</p>
+      ) : null}
     </section>
   );
 }

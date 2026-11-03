@@ -24,6 +24,9 @@ The live map only shows vehicles while a real driver is sharing GPS, so it is us
 - **Multi-vehicle live map**: separate sessions, route filter, server timestamps, stale filtering, live/empty/loading/offline/error states, accessible vehicle list.
 - **MongoDB persistence when configured**: official driver, JSON schema validation, unique indexes, TTL expiry, and session isolation. Without a URI, the app runs in an explicitly labelled non-persistent memory mode.
 - **Meta AI assistant**: backend-only `MODEL_API_KEY`, verified `https://api.meta.ai/v1`, model `muse-spark-1.2-contributor` (pinned in `server/config.ts`), grounded prompt using verified routes and aggregate live counts only. AI and tracking fail independently.
+- **Trip planner with changes**: pick a start and destination stop and get direct rides or journeys with up to two changes between routes, naming the exact change stop and each leg's direction. It is deterministic (`shared/trip.ts`), runs in the browser, and never invents stops, walking links, fares, or times.
+- **Muse Spark tool calling**: the assistant is given two read-only tools, `plan_trip` and `find_stop`, over the verified dataset and can call them for up to three rounds before answering. The UI shows which tools were used. If the provider rejects function tools, the assistant automatically falls back to the grounded prompt.
+- **Voice questions with Muse Voice**: press **বলে জিজ্ঞেস করুন**, speak a question (up to 20 s), and the server streams it as 16 kHz PCM16 to `muse-voice-transcribe-1.0` over Meta's realtime ASR socket with a Bengali language bias. The transcript fills the question box for the user to check before sending. Audio is never stored.
 - **Privacy controls**: no phone, plate, driver identity, or passenger location is collected. Session tokens are returned once, stored hashed, sent only in a Bearer header, and removed on stop/expiry.
 - **Bangla/English UI**, experimental Chittagonian AI answer option (with standard Bangla fallback), responsive layout, keyboard focus, skip link, reduced-motion support.
 - **Two clear interfaces**: a passenger dashboard (search, embedded live map, AI assistant card, route directory) and a separate full-screen driver interface. The driver view is never mixed into passenger navigation.
@@ -182,7 +185,8 @@ Never commit `server/.env` or paste the connection string into an issue. If Mong
 | `POST` | `/api/tracking/start` | Validate journey, consent, initial GPS; create session |
 | `POST` | `/api/tracking/location` | Update one session using `Authorization: Bearer <token>` |
 | `POST` | `/api/tracking/stop` | Delete the session (idempotent `204`) |
-| `POST` | `/api/ai-test` | Route-grounded Meta AI answer |
+| `POST` | `/api/ai-test` | Route-grounded Meta AI answer; returns `toolCalls` used |
+| `POST` | `/api/transcribe?language=bn` | 16 kHz mono PCM16 (`application/octet-stream`, ≤ 20 s) → Muse Voice transcript |
 
 All API responses use structured error codes such as `INVALID_JOURNEY`, `CONSENT_REQUIRED`, `UNAUTHORIZED_SESSION`, `UPDATE_TOO_FREQUENT`, `TRACKING_STORE_UNAVAILABLE`, and `AI_NOT_CONFIGURED`.
 
@@ -200,10 +204,10 @@ npm run typecheck
 npm test
 ```
 
-Current local result (29 Oct 2026):
+Current local result (3 Nov 2026):
 
 - Frontend: **17/17 tests passed**, build passed, lint clean.
-- Backend: **55 tests, 54 passed, 1 skipped** (MongoDB integration requires `MONGODB_URI_TEST`).
+- Backend: **67 tests, 66 passed, 1 skipped** (MongoDB integration requires `MONGODB_URI_TEST`). New tests cover the trip planner, route tools, the tool-call loop and its fallback, the Muse Voice handshake and packet streaming (with a fake socket), and the transcribe endpoint.
 - Driver access: passenger → driver and driver → passenger navigation verified in headless Chrome at desktop and 390 px mobile widths; UI GPS start/update/stop flow verified with Chrome geolocation emulation.
 - Database: local checks ran in **memory mode**. The deployed API is connected to MongoDB Atlas (persistent); the automated Atlas integration test is still skipped until a test-only `MONGODB_URI_TEST` is provided.
 - Dependency audit: **0 vulnerabilities** after updating Capacitor CLI tooling.

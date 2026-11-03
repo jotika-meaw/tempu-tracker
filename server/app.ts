@@ -14,6 +14,7 @@ import {
 } from "./tracking/types";
 import type { MetaAIService } from "./ai/service";
 import { AiError } from "./ai/errors";
+import { MAX_AUDIO_BYTES, SAMPLE_RATE, type MuseTranscriber } from "./ai/transcribe";
 import { buildHealth, isTrackingOperational } from "./health";
 import {
   ApiError,
@@ -32,6 +33,7 @@ export type CreateAppOptions = {
   config: AppConfig;
   store: TrackingStore;
   ai: MetaAIService;
+  transcriber?: MuseTranscriber;
   rateLimitEnabled?: boolean;
   clock?: () => Date;
 };
@@ -67,7 +69,7 @@ function limiterFor(
 }
 
 export function createApp(options: CreateAppOptions) {
-  const { config, store, ai } = options;
+  const { config, store, ai, transcriber } = options;
   const clock = options.clock ?? (() => new Date());
   const rateLimitEnabled = options.rateLimitEnabled ?? config.rateLimitEnabled;
   const app = express();
@@ -117,6 +119,15 @@ export function createApp(options: CreateAppOptions) {
         10,
         "AI_RATE_LIMITED",
         "Too many AI requests. Please wait and try again."
+      )
+    );
+    app.use(
+      "/api/transcribe",
+      limiterFor(
+        60_000,
+        6,
+        "AI_RATE_LIMITED",
+        "Too many voice requests. Please wait and try again."
       )
     );
     app.use(
@@ -372,7 +383,34 @@ export function createApp(options: CreateAppOptions) {
       res.json({
         answer: result.answer,
         model: result.model,
+        toolCalls: result.toolCalls,
       });
+    })
+  );
+
+  app.post(
+    "/api/transcribe",
+    express.raw({ type: "application/octet-stream", limit: MAX_AUDIO_BYTES }),
+    asyncRoute(async (req, res) => {
+      if (!transcriber?.configured) {
+        throw new AiError(503, "AI_NOT_CONFIGURED", "Voice input is not configured on this server.");
+      }
+
+      const audio = req.body;
+      // At least a quarter second of whole 16-bit samples.
+      if (!Buffer.isBuffer(audio) || audio.byteLength < SAMPLE_RATE / 2 || audio.byteLength % 2 !== 0) {
+        throw new ApiError(
+          400,
+          "INVALID_AUDIO",
+          "Send 16 kHz mono PCM16 audio as application/octet-stream."
+        );
+      }
+
+      const rawLanguage = req.query.language;
+      const language =
+        rawLanguage === "en" || rawLanguage === "ctg" || rawLanguage === "bn" ? rawLanguage : "bn";
+      const transcript = await transcriber.transcribe(new Uint8Array(audio), language);
+      res.json({ transcript: transcript.slice(0, 1000) });
     })
   );
 

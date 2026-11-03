@@ -16,3 +16,12 @@ export {
   type JourneyValidation,
   type ValidatedJourney,
 } from "./journey";
+export {
+  allTripStops,
+  normalizeStopText,
+  planTrip,
+  resolveStop,
+  type TripLeg,
+  type TripOption,
+  type TripPlan,
+} from "./trip";

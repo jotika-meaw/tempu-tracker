@@ -2,6 +2,7 @@ import { config } from "./config";
 import { createTrackingStore } from "./tracking/factory";
 import { createMetaClient } from "./ai/meta-client";
 import { MetaAIService } from "./ai/service";
+import { MuseTranscriber } from "./ai/transcribe";
 import { createApp } from "./app";
 import { TEMPU_ROUTE_NUMBERS } from "../shared/routes";
 
@@ -30,7 +31,12 @@ async function main(): Promise<void> {
     allowedRouteNumbers: TEMPU_ROUTE_NUMBERS,
   });
 
-  const app = createApp({ config, store, ai });
+  const transcriber = new MuseTranscriber({
+    apiKey: config.modelApiKey,
+    timeoutMs: config.aiTimeoutMs,
+  });
+
+  const app = createApp({ config, store, ai, transcriber });
   const server = app.listen(config.port, () => {
     console.log(`Tempu Tracker API listening on http://localhost:${config.port}`);
     console.log(

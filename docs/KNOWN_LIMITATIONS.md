@@ -48,6 +48,9 @@ This document lists what the prototype does **not** do or has not yet proven. It
 - **No real inference call was made** during automated testing, because no approval to consume provider credits was given. Answer quality, latency, refusal behaviour, and cost are unverified.
 - The prompt is grounded in the route dataset and aggregate live counts, and an output guard rejects unknown route numbers. That does not guarantee factual correctness, tone, or safety.
 - The AI can be wrong about directions, stop order, or whether a route is suitable. It is an assistance layer, not an authority.
+- Function tools (`plan_trip`, `find_stop`) are only documented by third parties for `muse-spark-1.1`. If the pinned model rejects tools, the service falls back to the plain grounded prompt; the tool loop is tested only against a fake client.
+- Voice input uses Meta's realtime ASR socket (`wss://api.meta.ai/v1/asr/realtime`). The handshake and event format follow LiteLLM's Meta integration because no first-party reference was available; it is tested only against a fake socket. Audio is paced in real time, so a 10-second question takes about 10 seconds to transcribe.
+- The trip planner only links routes at stops with exactly the same name in the dataset. It does not add walking transfers, so some pairs (and spelling variants such as `এ কে খান মোড়` / `একে খান মোড়`) are not connected.
 - Chittagonian (`ctg`) is **experimental**. The model may produce standard Bangla or an inconsistent mix; the UI says so. No native-speaker evaluation has been done.
 - The AI receives the user's question text. Users should not type personal or sensitive information.
 - The AI is rate-limited to 10 requests/minute per IP by default. Provider-side limits and billing can still change.

@@ -2552,3 +2552,129 @@ button:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Trip planner */
+.trip-card {
+  display: grid;
+  gap: 16px;
+}
+
+.trip-form {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.trip-field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.trip-field input {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-bangla);
+}
+
+.trip-swap {
+  min-height: 46px;
+}
+
+.trip-options,
+.trip-legs {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trip-option {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--green-pale);
+}
+
+.trip-option-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.trip-option-header .badge {
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 11px;
+}
+
+.trip-option-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.trip-leg {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.trip-leg p {
+  margin: 0 0 4px;
+}
+
+.trip-leg-stops {
+  color: var(--muted);
+  font-size: 13px;
+  font-family: var(--font-bangla);
+}
+
+.trip-leg-partial {
+  color: var(--warning);
+  font-size: 12px;
+}
+
+.trip-change {
+  color: var(--green-dark);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.trip-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Voice input */
+.voice-button-recording {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.voice-error {
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .trip-form {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-swap {
+    justify-self: start;
+  }
+}

@@ -101,4 +101,10 @@ export type AiLanguage = "bn" | "en" | "ctg";
 export type AiResponse = {
   answer: string;
   model: string;
+  /** Route tools the model called while answering, e.g. "plan_trip". */
+  toolCalls?: string[];
+};
+
+export type TranscribeResponse = {
+  transcript: string;
 };

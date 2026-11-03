@@ -16,3 +16,10 @@ export {
   type JourneyValidation,
   type ValidatedJourney,
 } from "../shared/journey";
+export {
+  allTripStops,
+  planTrip,
+  type TripLeg,
+  type TripOption,
+  type TripPlan,
+} from "../shared/trip";

@@ -148,6 +148,10 @@ What the AI does **not** receive:
 
 The request sets `store: false`. This is a provider-side request flag, not a guarantee about the provider's independent retention practices; review Meta's current API terms before production.
 
+Voice input: the browser records only after the user presses the voice button and grants microphone permission, stops after at most 20 seconds, and sends the audio once to `/api/transcribe`. The server streams it to Meta's Muse Voice service and returns the transcript; audio is not written to disk, logged, or stored in MongoDB. The transcript is shown to the user for review before anything is sent to the assistant.
+
+Route tools: `plan_trip` and `find_stop` read only the static route dataset. They cannot read tracking sessions, coordinates, or tokens.
+
 Users should not type personal or sensitive information into the assistant. The app does not redact question text. The output guard checks route numbers and answer size, but it cannot guarantee factual correctness or prevent all unsafe content.
 
 ## 9. Third-party requests
