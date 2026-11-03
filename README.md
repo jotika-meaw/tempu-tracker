@@ -136,6 +136,23 @@ npm run verify:meta -- --infer
 
 Only do this with approval to spend provider credits.
 
+## Deploying to Vercel
+
+The API and client are two Vercel projects deployed from the CLI.
+
+```powershell
+# API: stage a self-contained copy (vendors shared/, adds .js imports, server.ts entry)
+cd server
+node scripts/stage-vercel.mjs
+cd .vercel-deploy
+vercel deploy --prod --project tempu-tracker-server
+
+# Client: from the repo root (.vercelignore keeps server/ and secrets out of the upload)
+vercel deploy --prod --project tempu-tracker-client --build-env VITE_API_BASE_URL=https://tempu-tracker-server.vercel.app
+```
+
+Server secrets (`MODEL_API_KEY`, `MONGODB_URI`, `CORS_ORIGINS`) live in the Vercel project settings, never in the uploaded files.
+
 ## Data modes
 
 | Condition | Mode | Behaviour |

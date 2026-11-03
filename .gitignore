@@ -41,3 +41,6 @@ server/tmp
 *.sw?
 
 .vercel
+
+# Staged Vercel API build
+server/.vercel-deploy
