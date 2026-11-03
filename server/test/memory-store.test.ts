@@ -31,6 +31,7 @@ function sessionInput(
     accuracy: 10,
     expiresAt: new Date(now.getTime() + 3600_000),
     consentVersion: "demo-v1",
+    vehicleType: "tempu",
     now,
     ...overrides,
   };
@@ -60,6 +61,7 @@ test("memory store creates a session with only the latest GPS point", async () =
     "startStop",
     "endStop",
     "segmentStops",
+    "vehicleType",
     "latitude",
     "longitude",
     "accuracy",

@@ -1,3 +1,7 @@
+import type { VehicleType } from "../../shared/vehicles";
+
+export type { VehicleType };
+
 export type Direction = "outbound" | "return";
 
 export type RouteConfidence = "verified" | "partial";
@@ -37,6 +41,8 @@ export type PublicVehicle = {
   startStop: string;
   endStop: string;
   segmentStops: string[];
+  /** Driver-declared; missing from servers older than vehicle types. */
+  vehicleType?: VehicleType;
   latitude: number;
   longitude: number;
   accuracy: number | null;
@@ -64,6 +70,7 @@ export type StartTrackingInput = {
   direction: Direction;
   startIndex: number;
   endIndex: number;
+  vehicleType: VehicleType;
   consent: true;
   initialLocation: LocationPayload;
 };
@@ -77,6 +84,7 @@ export type StartedJourney = {
   startStop: string;
   endStop: string;
   segmentStops: string[];
+  vehicleType?: VehicleType;
   confidence: RouteConfidence;
   via: string[];
   note: string | null;

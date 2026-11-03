@@ -20,6 +20,15 @@ import { tempuRoutes, type Direction } from "../shared/routes";
 import { t, formatDateTime, formatTime, type UiLanguage } from "./i18n";
 import { Banner } from "./components/Banner";
 import { DirectionStops } from "./components/DirectionStops";
+import { VehicleIcon } from "./components/TempuIcon";
+import {
+  DEFAULT_VEHICLE_TYPE,
+  VEHICLE_HINT,
+  VEHICLE_LABEL,
+  VEHICLE_TYPES,
+  vehicleTypeOf,
+  type VehicleType,
+} from "./lib/vehicles";
 
 type Phase = "idle" | "locating" | "starting" | "live";
 
@@ -66,6 +75,7 @@ export function DriverPanel({ language, onOpenMap }: DriverPanelProps) {
   const [startIndex, setStartIndex] = useState<number | "">("");
   const [endIndex, setEndIndex] = useState<number | "">("");
   const [consent, setConsent] = useState(false);
+  const [vehicleType, setVehicleType] = useState<VehicleType>(DEFAULT_VEHICLE_TYPE);
   const [phase, setPhase] = useState<Phase>("idle");
   const [session, setSession] = useState<StartTrackingResponse | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -313,6 +323,7 @@ export function DriverPanel({ language, onOpenMap }: DriverPanelProps) {
         direction,
         startIndex: startIndex as number,
         endIndex: endIndex as number,
+        vehicleType,
         consent: true,
         initialLocation: {
           latitude: position.coords.latitude,
@@ -519,6 +530,30 @@ export function DriverPanel({ language, onOpenMap }: DriverPanelProps) {
             </div>
           ) : null}
 
+          <fieldset className="vehicle-picker" disabled={formLocked}>
+            <legend>{t(language, "vehicleTypeLabel")}</legend>
+            <div className="vehicle-picker-options">
+              {VEHICLE_TYPES.map((type) => (
+                <label
+                  key={type}
+                  className={vehicleType === type ? "vehicle-option selected" : "vehicle-option"}
+                >
+                  <input
+                    type="radio"
+                    name="vehicle-type"
+                    value={type}
+                    checked={vehicleType === type}
+                    onChange={() => setVehicleType(type)}
+                  />
+                  <VehicleIcon type={type} size={76} />
+                  <span className="vehicle-option-name">{t(language, VEHICLE_LABEL[type])}</span>
+                  <span className="vehicle-option-hint">{t(language, VEHICLE_HINT[type])}</span>
+                </label>
+              ))}
+            </div>
+            <p className="field-note">{t(language, "vehicleTypeNote")}</p>
+          </fieldset>
+
           <div className="consent-box">
             <h3>{t(language, "driverConsentTitle")}</h3>
             <p>{t(language, "driverConsentBody")}</p>
@@ -569,6 +604,10 @@ export function DriverPanel({ language, onOpenMap }: DriverPanelProps) {
               <div className="live-heading">
                 <span className="live-dot" aria-hidden="true" />
                 <h2 id="driver-live-title">{t(language, "driverLiveTitle")}</h2>
+              </div>
+              <div className="driver-live-vehicle">
+                <VehicleIcon type={vehicleTypeOf(session.journey.vehicleType)} size={64} />
+                <span>{t(language, VEHICLE_LABEL[vehicleTypeOf(session.journey.vehicleType)])}</span>
               </div>
               <p>{t(language, "driverLiveBody")}</p>
 

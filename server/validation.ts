@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { DEFAULT_VEHICLE_TYPE, isVehicleType, type VehicleType } from "../shared/vehicles";
 import {
   TEMPU_ROUTE_NUMBERS,
   type Direction,
@@ -94,6 +95,7 @@ function parseLocationObject(value: unknown): {
 }
 
 export type StartRequest = {
+  vehicleType: VehicleType;
   routeNumber: string;
   direction: Direction;
   startIndex: number;
@@ -111,7 +113,7 @@ export function parseStartRequest(body: unknown): StartRequest {
     throw new ApiError(400, "INVALID_REQUEST", "A JSON request body is required.");
   }
 
-  const { routeNumber, direction, startIndex, endIndex, consent, initialLocation } =
+  const { routeNumber, direction, startIndex, endIndex, consent, initialLocation, vehicleType } =
     body;
 
   if (consent !== true) {
@@ -154,11 +156,20 @@ export function parseStartRequest(body: unknown): StartRequest {
 
   const location = parseLocationObject(initialLocation);
 
+  if (vehicleType !== undefined && !isVehicleType(vehicleType)) {
+    throw new ApiError(
+      400,
+      "INVALID_VEHICLE_TYPE",
+      "Vehicle type must be tempu, cng, or human-hauler."
+    );
+  }
+
   return {
     routeNumber,
     direction,
     startIndex,
     endIndex,
+    vehicleType: vehicleType ?? DEFAULT_VEHICLE_TYPE,
     initialLocation: location,
     consentVersion: DEMO_CONSENT_VERSION,
   };

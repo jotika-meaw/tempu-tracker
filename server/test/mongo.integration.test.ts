@@ -27,6 +27,7 @@ function mongoSession(
     accuracy: 10,
     expiresAt: new Date(now.getTime() + 3600_000),
     consentVersion: "demo-v1",
+    vehicleType: "tempu",
     now,
     ...overrides,
   };

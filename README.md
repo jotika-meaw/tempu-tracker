@@ -40,6 +40,7 @@ The live map only shows vehicles while a real driver is sharing GPS, so it is us
 - **Voice questions with Muse Voice**: press **বলে জিজ্ঞেস করুন**, speak a question (up to 20 s), and the server streams it as 16 kHz PCM16 to `muse-voice-transcribe-1.0` over Meta's realtime ASR socket with a Bengali language bias. The transcript fills the question box for the user to check before sending. Audio is never stored.
 - **Privacy controls**: no phone, plate, driver identity, or passenger location is collected. Session tokens are returned once, stored hashed, sent only in a Bearer header, and removed on stop/expiry.
 - **Bangla/English UI**, experimental Chittagonian AI answer option (with standard Bangla fallback), responsive layout, keyboard focus, skip link, reduced-motion support.
+- **Three vehicle types with their own icons**: drivers pick what they drive — **টেম্পু** (long three-wheeler with side benches), **সিএনজি অটোরিকশা** (CNG auto-rickshaw), or **হিউম্যান হলার** (four-wheel human hauler). The live map pin, vehicle list and legend show the matching icon. The type is driver-declared and not verified; sessions without one default to টেম্পু.
 - **Separate driver and passenger sign-in**: a login page with two demo accounts. A passenger only sees search, the trip planner, the live map and the assistant; a driver only sees the tracking interface and a read-only live map. The server enforces the same split: only a driver token can start GPS sharing, and only a passenger token can use the AI and voice endpoints. Tokens are HMAC-signed, expire after 12 hours, and are sent in an `X-Tempu-Auth` header.
 - **Automated tests** for routes, journeys, GPS validation, session isolation, store/AI outages, AI failure mapping, privacy, search, freshness, and the frontend API client.
 
@@ -211,7 +212,7 @@ Never commit `server/.env` or paste the connection string into an issue. If Mong
 | `GET` | `/api/health` | Separate database and AI health, no secrets |
 | `GET` | `/api/health/ready` | Readiness (`503` only when tracking is unavailable) |
 | `GET` | `/api/tracking/active?routeNumber=01` | Fresh public vehicle positions and stale count |
-| `POST` | `/api/tracking/start` | Validate journey, consent, initial GPS; create session |
+| `POST` | `/api/tracking/start` | Validate journey, consent, initial GPS; create session. Optional `vehicleType`: `tempu` (default), `cng`, or `human-hauler`. |
 | `POST` | `/api/tracking/location` | Update one session using `Authorization: Bearer <token>` |
 | `POST` | `/api/tracking/stop` | Delete the session (idempotent `204`) |
 | `POST` | `/api/ai-test` | Route-grounded Meta AI answer; returns `toolCalls` used |
@@ -236,7 +237,7 @@ npm test
 Current local result (3 Nov 2026):
 
 - Frontend: **20/20 tests passed**, build passed, lint clean.
-- Backend: **73 tests, 72 passed, 1 skipped** (MongoDB integration requires `MONGODB_URI_TEST`). New tests cover the trip planner, route tools, the tool-call loop and its fallback, the Muse Voice handshake and packet streaming (with a fake socket), the transcribe endpoint, and sign-in with role checks (driver-only GPS start, passenger-only AI, tampered and expired tokens).
+- Backend: **74 tests, 73 passed, 1 skipped** (MongoDB integration requires `MONGODB_URI_TEST`). New tests cover the trip planner, route tools, the tool-call loop and its fallback, the Muse Voice handshake and packet streaming (with a fake socket), the transcribe endpoint, and sign-in with role checks (driver-only GPS start, passenger-only AI, tampered and expired tokens).
 - Role separation: both demo accounts checked in the browser; a passenger opening `#/driver` stays on the passenger dashboard and gets `403` from the GPS start endpoint; a driver opening passenger links stays in the driver interface and gets `403` from the AI endpoint. Login page checked at 375 px with no horizontal overflow.
 - Database: local checks ran in **memory mode**. The deployed API is connected to MongoDB Atlas (persistent); the automated Atlas integration test is still skipped until a test-only `MONGODB_URI_TEST` is provided.
 - Dependency audit: **0 vulnerabilities** after updating Capacitor CLI tooling.

@@ -422,3 +422,28 @@ test("unknown API endpoints return structured 404 responses", async () => {
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, "NOT_FOUND");
 });
+
+test("drivers declare a vehicle type that the public map shows", async () => {
+  const { app } = setup();
+
+  for (const vehicleType of ["tempu", "cng", "human-hauler"]) {
+    const started = await startJourney(app, { vehicleType });
+    assert.equal(started.journey.vehicleType, vehicleType);
+  }
+  const defaulted = await startJourney(app);
+  assert.equal(defaulted.journey.vehicleType, "tempu");
+
+  const active = await request(app).get("/api/tracking/active");
+  const types = (active.body.vehicles as Array<{ vehicleType: string }>)
+    .map((vehicle) => vehicle.vehicleType)
+    .sort();
+  assert.deepEqual(types, ["cng", "human-hauler", "tempu", "tempu"]);
+
+  for (const vehicleType of ["bus", "", 3, null]) {
+    const rejected = await request(app)
+      .post("/api/tracking/start")
+      .send(validStartBody({ vehicleType }));
+    assert.equal(rejected.status, 400);
+    assert.equal(rejected.body.error.code, "INVALID_VEHICLE_TYPE");
+  }
+});

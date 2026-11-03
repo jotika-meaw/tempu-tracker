@@ -1,4 +1,5 @@
 import type { Direction } from "../../shared/routes";
+import type { VehicleType } from "../../shared/vehicles";
 
 export type StoreMode =
   | "mongodb"
@@ -32,6 +33,8 @@ export type SessionRecord = {
   startStop: string;
   endStop: string;
   segmentStops: string[];
+  /** Driver-declared, not verified. */
+  vehicleType: VehicleType;
   latitude: number;
   longitude: number;
   accuracy: number | null;
@@ -57,6 +60,7 @@ export type PublicVehicle = {
   startStop: string;
   endStop: string;
   segmentStops: string[];
+  vehicleType: VehicleType;
   latitude: number;
   longitude: number;
   accuracy: number | null;
@@ -118,6 +122,7 @@ export function toPublicVehicle(
     startStop: record.startStop,
     endStop: record.endStop,
     segmentStops: [...record.segmentStops],
+    vehicleType: record.vehicleType,
     latitude: record.latitude,
     longitude: record.longitude,
     accuracy: record.accuracy,

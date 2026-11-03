@@ -18,6 +18,7 @@ const validStart = {
   direction: "outbound" as const,
   startIndex: 0,
   endIndex: 3,
+  vehicleType: "tempu" as const,
   consent: true as const,
   initialLocation: {
     latitude: 22.3569,
@@ -56,6 +57,7 @@ describe("API client", () => {
     expect(init.method).toBe("POST");
     expect(JSON.parse(String(init.body))).toMatchObject({
       routeNumber: "01",
+      vehicleType: "tempu",
       consent: true,
     });
   });

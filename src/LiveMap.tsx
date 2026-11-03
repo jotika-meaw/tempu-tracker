@@ -26,7 +26,14 @@ import {
 } from "./lib/freshness";
 import { describeApiError } from "./lib/errors";
 import { Banner } from "./components/Banner";
-import { TEMPU_SVG, TempuIcon } from "./components/TempuIcon";
+import { TempuIcon, VehicleIcon } from "./components/TempuIcon";
+import { VEHICLE_SVGS } from "./components/vehicleSvgs";
+import {
+  VEHICLE_LABEL,
+  VEHICLE_TYPES,
+  vehicleTypeOf,
+  type VehicleType,
+} from "./lib/vehicles";
 
 type Snapshot = {
   response: ActiveVehiclesResponse;
@@ -41,20 +48,21 @@ const CHATTOGRAM_CENTER: [number, number] = [22.3569, 91.7832];
 
 const vehicleIcons = new Map<string, L.DivIcon>();
 
-/** A map pin shaped like a tempu, labelled with its route number. */
-function createVehicleIcon(routeNumber: string): L.DivIcon {
+/** A map pin showing the vehicle's type, labelled with its route number. */
+function createVehicleIcon(routeNumber: string, vehicleType: VehicleType): L.DivIcon {
   const safeNumber = routeNumber.replace(/[^0-9]/g, "");
-  const cached = vehicleIcons.get(safeNumber);
+  const key = `${vehicleType}:${safeNumber}`;
+  const cached = vehicleIcons.get(key);
   if (cached) return cached;
 
   const icon = L.divIcon({
-    className: "tempu-marker",
-    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${TEMPU_SVG}</span><span class="tempu-pin-route">${safeNumber}</span></span>`,
+    className: `tempu-marker tempu-marker-${vehicleType}`,
+    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${VEHICLE_SVGS[vehicleType]}</span><span class="tempu-pin-route">${safeNumber}</span></span>`,
     iconSize: [60, 58],
     iconAnchor: [30, 56],
     popupAnchor: [0, -52],
   });
-  vehicleIcons.set(safeNumber, icon);
+  vehicleIcons.set(key, icon);
   return icon;
 }
 
@@ -308,7 +316,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
               <Marker
                 key={vehicle.publicId}
                 position={[vehicle.latitude, vehicle.longitude]}
-                icon={createVehicleIcon(vehicle.routeNumber)}
+                icon={createVehicleIcon(vehicle.routeNumber, vehicleTypeOf(vehicle.vehicleType))}
               >
                 <Popup autoPanPaddingTopLeft={[16, embedded ? 16 : 96]}>
                   <strong>
@@ -322,6 +330,8 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                     ? t(language, "directionOutbound")
                     : t(language, "directionReturn")}
                   : {vehicle.startStop} → {vehicle.endStop}
+                  <br />
+                  {t(language, VEHICLE_LABEL[vehicleTypeOf(vehicle.vehicleType)])}
                   <br />
                   {t(language, "mapLastUpdate")}:{" "}
                   {formatAge(vehicle.currentAge, language)}
@@ -385,6 +395,15 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
           ) : null}
         </div>
 
+        <ul className="vehicle-legend" aria-label={t(language, "vehicleLegend")}>
+          {VEHICLE_TYPES.map((type) => (
+            <li key={type}>
+              <VehicleIcon type={type} size={40} />
+              {t(language, VEHICLE_LABEL[type])}
+            </li>
+          ))}
+        </ul>
+
         <div className="map-footer">
           <p>{t(language, "mapPrivacy")}</p>
           <p>{t(language, "mapNotVerified")}</p>
@@ -415,11 +434,16 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             {vehicles.map((vehicle) => (
               <li className="vehicle-item" key={vehicle.publicId}>
                 <div className="vehicle-item-header">
-                  <TempuIcon size={44} className="vehicle-item-icon" />
+                  <VehicleIcon
+                    type={vehicleTypeOf(vehicle.vehicleType)}
+                    size={44}
+                    className="vehicle-item-icon"
+                  />
                   <span className="route-badge">{vehicle.routeNumber}</span>
                   <div className="vehicle-title">
                     <strong>{vehicle.routeName}</strong>
                     <span>
+                      {t(language, VEHICLE_LABEL[vehicleTypeOf(vehicle.vehicleType)])} ·{" "}
                       {vehicle.direction === "outbound"
                         ? t(language, "directionOutbound")
                         : t(language, "directionReturn")}

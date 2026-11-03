@@ -1299,3 +1299,147 @@ a:focus-visible {
     height: 69px;
   }
 }
+
+/* Vehicle types */
+
+.vehicle-picker {
+  margin: 4px 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.vehicle-picker legend {
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.vehicle-picker-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vehicle-option {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out),
+    background 160ms ease;
+}
+
+.vehicle-option:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.vehicle-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vehicle-option:has(input:focus-visible) {
+  outline: 3px solid var(--marigold);
+  outline-offset: 2px;
+}
+
+.vehicle-option.selected {
+  border-color: var(--green);
+  background: var(--green-pale);
+  box-shadow: 0 0 0 4px rgb(15 92 67 / 10%);
+}
+
+.vehicle-option.selected::after {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  content: "✓";
+}
+
+.vehicle-option-name {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vehicle-option-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.vehicle-picker:disabled .vehicle-option {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.vehicle-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  list-style: none;
+}
+
+.vehicle-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.driver-live-vehicle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@media (max-width: 460px) {
+  .vehicle-picker-options {
+    gap: 8px;
+  }
+
+  .vehicle-option {
+    padding: 10px 6px;
+  }
+
+  .vehicle-option .tempu-icon {
+    width: 56px !important;
+    height: 39px !important;
+  }
+
+  .vehicle-option-hint {
+    display: none;
+  }
+}

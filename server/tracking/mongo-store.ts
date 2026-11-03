@@ -6,6 +6,7 @@ import {
   type Document,
 } from "mongodb";
 import { TEMPU_ROUTE_NUMBERS } from "../../shared/routes";
+import { DEFAULT_VEHICLE_TYPE, VEHICLE_TYPES, isVehicleType } from "../../shared/vehicles";
 import {
   toPublicVehicle,
   type ActiveVehicles,
@@ -18,7 +19,12 @@ import {
   type UpdateLocationResult,
 } from "./types";
 
-type SessionDocument = Omit<SessionRecord, "startedAt" | "lastLocationAt" | "expiresAt"> & {
+type SessionDocument = Omit<
+  SessionRecord,
+  "startedAt" | "lastLocationAt" | "expiresAt" | "vehicleType"
+> & {
+  // Optional so sessions stored before vehicle types existed stay valid.
+  vehicleType?: SessionRecord["vehicleType"];
   _id?: ObjectId;
   startedAt: Date;
   lastLocationAt: Date;
@@ -67,6 +73,7 @@ const validator = {
         minItems: 2,
         items: { bsonType: "string" },
       },
+      vehicleType: { enum: [...VEHICLE_TYPES] },
       latitude: { bsonType: "number", minimum: -90, maximum: 90 },
       longitude: { bsonType: "number", minimum: -180, maximum: 180 },
       accuracy: { bsonType: ["number", "null"], minimum: 0 },
@@ -91,6 +98,7 @@ function toRecord(document: SessionDocument): SessionRecord {
     startStop: document.startStop,
     endStop: document.endStop,
     segmentStops: [...document.segmentStops],
+    vehicleType: isVehicleType(document.vehicleType) ? document.vehicleType : DEFAULT_VEHICLE_TYPE,
     latitude: document.latitude,
     longitude: document.longitude,
     accuracy: document.accuracy,

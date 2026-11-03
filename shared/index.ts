@@ -25,3 +25,9 @@ export {
   type TripOption,
   type TripPlan,
 } from "./trip";
+export {
+  DEFAULT_VEHICLE_TYPE,
+  VEHICLE_TYPES,
+  isVehicleType,
+  type VehicleType,
+} from "./vehicles";
