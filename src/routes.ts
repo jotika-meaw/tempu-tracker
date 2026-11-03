@@ -23,3 +23,4 @@ export {
   type TripOption,
   type TripPlan,
 } from "../shared/trip";
+export { DEMO_ACCOUNTS, type DemoAccount } from "../shared/accounts";

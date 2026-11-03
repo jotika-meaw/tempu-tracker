@@ -2,19 +2,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { DriverPanel } from "./DriverPanel";
 import { LiveMap } from "./LiveMap";
-import { fetchHealth } from "./api/client";
-import type { HealthResponse } from "./api/types";
+import { fetchHealth, setAuthRejectedHandler, setAuthToken } from "./api/client";
+import type { AuthSession, HealthResponse } from "./api/types";
 import { HealthBanner } from "./components/HealthBanner";
 import { PassengerHome } from "./components/PassengerHome";
 import { AssistantCard } from "./components/AssistantCard";
+import { LoginPage } from "./components/LoginPage";
 import { t, type UiLanguage } from "./i18n";
+import { clearSession, loadSession, saveSession } from "./lib/session";
 
 type PassengerView = "explore" | "map" | "assistant";
-type AppMode = "passenger" | "driver";
+type DriverView = "panel" | "map";
 
+/** The hash a user asked for; which interface it opens depends on their role. */
 type RouteState = {
-  mode: AppMode;
-  view: PassengerView;
+  passengerView: PassengerView;
+  driverView: DriverView;
 };
 
 const passengerNav: Array<{
@@ -30,17 +33,22 @@ const passengerNav: Array<{
 function routeFromHash(hash: string): RouteState {
   const normalized = hash.replace(/\/+$/, "");
 
-  if (normalized === "#/driver") {
-    return { mode: "driver", view: "explore" };
-  }
   if (normalized === "#/map") {
-    return { mode: "passenger", view: "map" };
+    return { passengerView: "map", driverView: "map" };
   }
   if (normalized === "#/assistant") {
-    return { mode: "passenger", view: "assistant" };
+    return { passengerView: "assistant", driverView: "panel" };
   }
 
-  return { mode: "passenger", view: "explore" };
+  // #/driver, #/explore and unknown hashes open each role's home view.
+  return { passengerView: "explore", driverView: "panel" };
+}
+
+function getInitialSession(): AuthSession | null {
+  const session = loadSession();
+  // Set before the first render so child components' first requests carry it.
+  setAuthToken(session?.token ?? null);
+  return session;
 }
 
 function getInitialRoute(): RouteState {
@@ -59,6 +67,7 @@ function getInitialLanguage(): UiLanguage {
 
 function App() {
   const [route, setRoute] = useState<RouteState>(getInitialRoute);
+  const [session, setSession] = useState<AuthSession | null>(getInitialSession);
   const [language, setLanguage] = useState<UiLanguage>(getInitialLanguage);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState(false);
@@ -68,8 +77,31 @@ function App() {
   const mainRef = useRef<HTMLElement | null>(null);
   const firstViewRender = useRef(true);
 
-  const { mode, view: passengerView } = route;
-  const isDriver = mode === "driver";
+  const { passengerView, driverView } = route;
+  const role = session?.user.role ?? null;
+  const isDriver = role === "driver";
+
+  const signOut = useCallback(() => {
+    setAuthToken(null);
+    clearSession();
+    setSession(null);
+  }, []);
+
+  function handleSignedIn(next: AuthSession) {
+    setAuthToken(next.token);
+    saveSession(next);
+    setSession(next);
+    const home = next.user.role === "driver" ? "#/driver" : "#/explore";
+    if (window.location.hash !== home && window.location.hash !== "#/map") {
+      window.history.replaceState(null, "", home);
+      setRoute(routeFromHash(home));
+    }
+  }
+
+  useEffect(() => {
+    setAuthRejectedHandler(signOut);
+    return () => setAuthRejectedHandler(null);
+  }, [signOut]);
 
   const loadHealth = useCallback(async () => {
     try {
@@ -126,7 +158,7 @@ function App() {
     }
     window.scrollTo({ top: 0, behavior: "auto" });
     mainRef.current?.focus({ preventScroll: true });
-  }, [mode, passengerView]);
+  }, [role, passengerView, driverView]);
 
   const viewLabel = isDriver
     ? t(language, "driverDashboard")
@@ -139,22 +171,18 @@ function App() {
   const aiConfigured = health ? health.services.ai.configured : null;
 
   function navigatePassenger(nextView: PassengerView) {
-    setRoute({ mode: "passenger", view: nextView });
+    setRoute({ passengerView: nextView, driverView: "panel" });
     const nextHash = `#/${nextView}`;
     if (window.location.hash !== nextHash) {
       window.history.pushState(null, "", nextHash);
     }
   }
 
-  function openDriver() {
-    setRoute({ mode: "driver", view: "explore" });
+  function openDriverPanel() {
+    setRoute({ passengerView: "explore", driverView: "panel" });
     if (window.location.hash !== "#/driver") {
       window.history.pushState(null, "", "#/driver");
     }
-  }
-
-  function backToPassenger() {
-    navigatePassenger("explore");
   }
 
   function openMapInNewTab() {
@@ -177,6 +205,27 @@ function App() {
     </label>
   );
 
+  const signOutButton = (
+    <button
+      type="button"
+      className="button button-secondary button-small sign-out-button"
+      onClick={signOut}
+      title={session ? t(language, "signedInAs", { name: session.user.displayName }) : undefined}
+    >
+      {t(language, "signOut")}
+    </button>
+  );
+
+  if (!session) {
+    return (
+      <LoginPage
+        language={language}
+        languageSelect={languageSelect}
+        onSignedIn={handleSignedIn}
+      />
+    );
+  }
+
   if (isDriver) {
     return (
       <div className="driver-interface">
@@ -188,7 +237,7 @@ function App() {
           <button
             type="button"
             className="brand"
-            onClick={backToPassenger}
+            onClick={openDriverPanel}
             aria-label="Tempu Tracker home"
           >
             <span className="brand-icon" aria-hidden="true">
@@ -206,14 +255,7 @@ function App() {
               <span className="city-dot" aria-hidden="true" />
               {t(language, "city")}
             </span>
-            <button
-              type="button"
-              id="back-to-passenger-top"
-              className="button button-secondary button-small driver-back-button"
-              onClick={backToPassenger}
-            >
-              ← {t(language, "backToPassenger")}
-            </button>
+            {signOutButton}
           </div>
         </header>
 
@@ -224,16 +266,25 @@ function App() {
           tabIndex={-1}
         >
           <div className="driver-main-nav">
-            <button
-              type="button"
-              id="back-to-passenger-main"
-              className="button button-secondary driver-back-button"
-              onClick={backToPassenger}
-            >
-              ← {t(language, "backToPassenger")}
-            </button>
+            {driverView === "map" ? (
+              <button
+                type="button"
+                className="button button-secondary driver-back-button"
+                onClick={openDriverPanel}
+              >
+                ← {t(language, "driverPanelNav")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="button button-secondary driver-back-button"
+                onClick={openMapInNewTab}
+              >
+                {t(language, "driverMapNav")} <span aria-hidden="true">↗</span>
+              </button>
+            )}
             <span className="driver-main-nav-label">
-              {t(language, "driverDashboard")}
+              {t(language, "signedInAs", { name: session.user.displayName })}
             </span>
           </div>
 
@@ -250,7 +301,11 @@ function App() {
             onRetry={retryHealth}
           />
 
-          <DriverPanel language={language} onOpenMap={openMapInNewTab} />
+          {driverView === "map" ? (
+            <LiveMap language={language} />
+          ) : (
+            <DriverPanel language={language} onOpenMap={openMapInNewTab} />
+          )}
         </main>
       </div>
     );
@@ -331,27 +386,17 @@ function App() {
           </div>
 
           <div className="topbar-right">
-            <button
-              type="button"
-              id="open-driver-dashboard"
-              className="driver-dashboard-button"
-              onClick={openDriver}
-              aria-label={t(language, "driverDashboard")}
-              title={t(language, "driverDashboard")}
-            >
-              <span className="driver-dashboard-label">
-                {t(language, "driverDashboard")}
-              </span>
-              <span className="driver-dashboard-arrow" aria-hidden="true">
-                →
-              </span>
-            </button>
             {languageSelect}
             <span className="city-label">
               <span className="city-dot" aria-hidden="true" />
               {t(language, "city")}
             </span>
-            <div className="avatar" aria-hidden="true">
+            {signOutButton}
+            <div
+              className="avatar"
+              title={t(language, "signedInAs", { name: session.user.displayName })}
+              aria-hidden="true"
+            >
               P
             </div>
           </div>

@@ -28,6 +28,9 @@ const codeToKey: Record<string, MessageKey> = {
   INVALID_RESPONSE: "errorInvalidResponse",
   PAYLOAD_TOO_LARGE: "errorInvalidRequest",
   INVALID_AUDIO: "errorVoiceAudio",
+  INVALID_CREDENTIALS: "errorInvalidCredentials",
+  AUTH_REQUIRED: "errorAuthRequired",
+  ROLE_NOT_ALLOWED: "errorRoleNotAllowed",
   TRANSCRIPT_EMPTY: "errorVoiceEmpty",
   AI_REQUEST_REJECTED: "errorAiUnavailable",
 };

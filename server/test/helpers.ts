@@ -21,6 +21,9 @@ export function createTestConfig(overrides: Partial<AppConfig> = {}): AppConfig 
     trackingSessionTtlSeconds: 3600,
     locationMinIntervalMs: 3000,
     rateLimitEnabled: false,
+    // Most API tests exercise behaviour behind sign-in; auth.test.ts turns it on.
+    authRequired: false,
+    authSecret: "test-auth-secret",
     ...overrides,
   };
 }

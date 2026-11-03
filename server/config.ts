@@ -19,6 +19,10 @@ export type AppConfig = {
   trackingSessionTtlSeconds: number;
   locationMinIntervalMs: number;
   rateLimitEnabled: boolean;
+  /** Require a signed-in demo account for driver and passenger actions. */
+  authRequired: boolean;
+  /** Explicit token-signing secret; see resolveAuthSecret for fallbacks. */
+  authSecret: string | null;
 };
 
 function numberFromEnv(
@@ -99,6 +103,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       60000
     ),
     rateLimitEnabled: boolFromEnv(env.RATE_LIMIT_ENABLED, true),
+    authRequired: boolFromEnv(env.AUTH_REQUIRED, true),
+    authSecret: (env.AUTH_SECRET ?? "").trim() || null,
   };
 }
 

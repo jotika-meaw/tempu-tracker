@@ -31,6 +31,11 @@ This document lists what the prototype does **not** do or has not yet proven. It
 - On Android, the WebView must be granted location permission and the page must be in the foreground. The manifest has permissions, but the APK has not been built/tested here.
 - No geofencing confirms that the driver is actually near the declared route.
 
+### Sign-in
+
+- Sign-in uses two published demo accounts. There is no sign-up, password reset, or per-person account, so anyone can use either role. It separates the interfaces and gates GPS start and AI use; it is not identity verification.
+- Tokens are stateless and signed. Signing out removes the token from the browser, but a copied token stays valid until it expires (12 hours).
+
 ## 4. Persistence and scale
 
 - The deployed API runs against MongoDB Atlas (persistent). Without `MONGODB_URI`, the app runs in **explicit non-persistent memory mode**. A server restart removes all sessions.

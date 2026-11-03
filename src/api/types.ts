@@ -105,6 +105,20 @@ export type AiResponse = {
   toolCalls?: string[];
 };
 
+export type UserRole = "driver" | "passenger";
+
+export type AuthUser = {
+  username: string;
+  role: UserRole;
+  displayName: string;
+};
+
+export type AuthSession = {
+  token: string;
+  user: AuthUser;
+  expiresAt: string;
+};
+
 export type TranscribeResponse = {
   transcript: string;
 };

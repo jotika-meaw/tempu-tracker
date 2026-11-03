@@ -2557,6 +2557,8 @@ button:disabled {
 .trip-card {
   display: grid;
   gap: 16px;
+  margin-bottom: 26px;
+  padding: 24px 26px 22px;
 }
 
 .trip-form {
@@ -2676,5 +2678,139 @@ button:disabled {
 
   .trip-swap {
     justify-self: start;
+  }
+}
+
+/* Sign-in */
+.login-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.login-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+
+.login-main {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 560px);
+  justify-content: center;
+  align-items: start;
+  gap: 20px;
+  padding: 40px 24px;
+}
+
+.login-card,
+.login-demo {
+  display: grid;
+  gap: 14px;
+  padding: 24px 26px;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.login-subtitle,
+.login-demo > p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.login-demo h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+}
+
+.login-demo-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.login-demo-account {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--green-pale);
+}
+
+.login-demo-account h3 {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 16px;
+}
+
+.login-demo-role {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.login-demo-account dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.login-demo-account dt {
+  color: var(--muted);
+}
+
+.login-demo-account dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.login-demo-account code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 13px;
+  user-select: all;
+}
+
+.sign-out-button {
+  white-space: nowrap;
+}
+
+@media (max-width: 920px) {
+  .login-main {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .login-topbar {
+    padding: 12px 16px;
+  }
+
+  .login-demo-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login-card,
+  .login-demo,
+  .trip-card {
+    padding: 18px 16px;
   }
 }

@@ -1,6 +1,7 @@
 import type {
   ActiveVehiclesResponse,
   AiLanguage,
+  AuthSession,
   AiResponse,
   HealthResponse,
   LocationAcceptedResponse,
@@ -20,6 +21,19 @@ export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "")
   .replace(/\/+$/, "");
 
 const DEFAULT_TIMEOUT_MS = 12_000;
+
+let authToken: string | null = null;
+let onAuthRejected: (() => void) | null = null;
+
+/** Attach the signed-in account to every API request (X-Tempu-Auth). */
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+/** Called when the server says the sign-in is missing or expired. */
+export function setAuthRejectedHandler(handler: (() => void) | null): void {
+  onAuthRejected = handler;
+}
 
 export class ApiClientError extends Error {
   readonly code: string;
@@ -75,6 +89,7 @@ async function requestJson<T>(
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(authToken ? { "X-Tempu-Auth": authToken } : {}),
         ...init.headers,
       },
     });
@@ -100,6 +115,7 @@ async function requestJson<T>(
         typeof envelope?.error?.message === "string"
           ? envelope.error.message
           : `Request failed with status ${response.status}.`;
+      if (code === "AUTH_REQUIRED") onAuthRejected?.();
       throw new ApiClientError(
         message,
         code,
@@ -143,6 +159,13 @@ async function requestJson<T>(
   } finally {
     globalThis.clearTimeout(timer);
   }
+}
+
+export async function login(username: string, password: string): Promise<AuthSession> {
+  return requestJson<AuthSession>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {

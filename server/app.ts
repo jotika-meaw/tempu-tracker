@@ -17,6 +17,14 @@ import { AiError } from "./ai/errors";
 import { MAX_AUDIO_BYTES, SAMPLE_RATE, type MuseTranscriber } from "./ai/transcribe";
 import { buildHealth, isTrackingOperational } from "./health";
 import {
+  AUTH_HEADER,
+  authenticate,
+  issueToken,
+  requireRole,
+  resolveAuthSecret,
+  verifyToken,
+} from "./auth";
+import {
   ApiError,
   generateSessionSecrets,
   hashSessionToken,
@@ -72,6 +80,10 @@ export function createApp(options: CreateAppOptions) {
   const { config, store, ai, transcriber } = options;
   const clock = options.clock ?? (() => new Date());
   const rateLimitEnabled = options.rateLimitEnabled ?? config.rateLimitEnabled;
+  const authSecret = resolveAuthSecret(config.authSecret, config.modelApiKey);
+  const authOptions = { required: config.authRequired, secret: authSecret, clock };
+  const driverOnly = requireRole(authOptions, ["driver"]);
+  const passengerOnly = requireRole(authOptions, ["passenger"]);
   const app = express();
 
   app.set("trust proxy", config.trustProxy);
@@ -95,7 +107,7 @@ export function createApp(options: CreateAppOptions) {
         );
       },
       methods: ["GET", "POST", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Tempu-Auth"],
       maxAge: 86400,
     })
   );
@@ -119,6 +131,15 @@ export function createApp(options: CreateAppOptions) {
         10,
         "AI_RATE_LIMITED",
         "Too many AI requests. Please wait and try again."
+      )
+    );
+    app.use(
+      "/api/auth/login",
+      limiterFor(
+        60_000,
+        10,
+        "RATE_LIMITED",
+        "Too many sign-in attempts. Please wait and try again."
       )
     );
     app.use(
@@ -207,7 +228,34 @@ export function createApp(options: CreateAppOptions) {
   );
 
   app.post(
+    "/api/auth/login",
+    asyncRoute(async (req, res) => {
+      const body = (req.body ?? {}) as { username?: unknown; password?: unknown };
+      const user = authenticate(body.username, body.password);
+      if (!user) {
+        throw new ApiError(401, "INVALID_CREDENTIALS", "The username or password is incorrect.");
+      }
+      const { token, expiresAt } = issueToken(user, authSecret, clock());
+      res.json({ token, user, expiresAt: expiresAt.toISOString() });
+    })
+  );
+
+  app.get(
+    "/api/auth/me",
+    asyncRoute(async (req, res) => {
+      const header = req.headers[AUTH_HEADER];
+      const user =
+        typeof header === "string" ? verifyToken(header.trim(), authSecret, clock()) : null;
+      if (!user) {
+        throw new ApiError(401, "AUTH_REQUIRED", "Please sign in to use this feature.");
+      }
+      res.json({ user });
+    })
+  );
+
+  app.post(
     "/api/tracking/start",
+    driverOnly,
     asyncRoute(async (req, res) => {
       const parsed = parseStartRequest(req.body);
       const journey = validateJourney(
@@ -339,6 +387,7 @@ export function createApp(options: CreateAppOptions) {
 
   app.post(
     "/api/ai-test",
+    passengerOnly,
     asyncRoute(async (req, res) => {
       const parsed = parseAiRequest(req.body);
       const now = clock();
@@ -390,6 +439,7 @@ export function createApp(options: CreateAppOptions) {
 
   app.post(
     "/api/transcribe",
+    passengerOnly,
     express.raw({ type: "application/octet-stream", limit: MAX_AUDIO_BYTES }),
     asyncRoute(async (req, res) => {
       if (!transcriber?.configured) {
