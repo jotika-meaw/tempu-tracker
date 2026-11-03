@@ -240,7 +240,7 @@ Headless Chrome with CDP was used to click the real UI, not just inspect source:
 
 These checks used Chrome's geolocation emulation, **not a physical phone/device**. A real two-device GPS test is still required.
 
-Screenshots stored under `docs/screenshots/` were captured from this local run. They show the honest memory-mode warning because no `MONGODB_URI` was configured. The mobile screenshots were captured with CDP device emulation at 390 × 844.
+Screenshots under `docs/screenshots/` were recaptured on 4 November 2026 from the live site (MongoDB connected) with headless Chrome: desktop at 1440 × 900, mobile at 390 × 844 with 2× pixel density, and reduced motion so entrance animations do not blur them.
 
 ## 8. Dependency audit
 

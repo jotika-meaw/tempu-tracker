@@ -20,11 +20,11 @@ Sign in on the first screen. Each role sees only its own interface.
 
 The login page also has one-click buttons for both accounts. These are public demo credentials: there is no sign-up and driver identity is not verified.
 
-The live map only shows vehicles while a real driver is sharing GPS, so it is usually empty. To see a vehicle, open `#/driver` on a phone, start a journey, and open the app on a second device.
+No real drivers are registered yet, so the map shows a labelled demo fleet (tagged DEMO). To see a real vehicle as well, sign in as the driver on a phone, start tracking, and open the live map as the passenger on a second device: the phone's pin appears without the DEMO tag.
 
 > This is a working hackathon prototype, not a production transport service. Driver identity and vehicle documents are **not** verified. Real positions exist only while a driver deliberately shares device GPS. For the hackathon demo, signed-in users also see simulated vehicles; every one is tagged DEMO, drawn with a dashed border, and can be switched off.
 
-![Passenger home](docs/screenshots/passenger-home.png)
+![Live map with the labelled demo fleet following real streets](docs/screenshots/live-map.png)
 
 ## What is implemented
 
@@ -47,13 +47,31 @@ The live map only shows vehicles while a real driver is sharing GPS, so it is us
 
 ## Screens
 
-| Live map | Driver tracking | Assistant |
-| --- | --- | --- |
-| ![Live map](docs/screenshots/live-map.png) | ![Driver tracking](docs/screenshots/driver-tracking.png) | ![Assistant](docs/screenshots/assistant.png) |
+Screenshots of the live site at https://tempu-tracker-client.vercel.app (Bangla interface), captured with headless Chrome on 4 November 2026.
 
-| Mobile passenger dashboard | Mobile driver interface |
+### Desktop
+
+| Login with demo accounts | Passenger home |
 | --- | --- |
-| ![Mobile passenger dashboard](docs/screenshots/passenger-home-mobile.png) | ![Mobile driver interface](docs/screenshots/driver-tracking-mobile.png) |
+| ![Login page with the two demo accounts](docs/screenshots/login.png) | ![Passenger home with live, route and stop stats](docs/screenshots/passenger-home.png) |
+
+| Live map — three vehicle types on real streets | Meta AI assistant — Muse Spark used `plan_trip` |
+| --- | --- |
+| ![Live map with demo vehicles and route lines](docs/screenshots/live-map.png) | ![Assistant answering a Bangla journey question](docs/screenshots/assistant.png) |
+
+| Driver tracking — route, segment, vehicle type, consent |
+| --- |
+| ![Driver form with the vehicle-type picker](docs/screenshots/driver-tracking.png) |
+
+**Trip planner** — Muradpur → Tiger Pass on route 01, with a live demo-vehicle hint:
+
+![Trip planner result with a demo arrival hint](docs/screenshots/trip-planner.png)
+
+### Mobile (390 × 844)
+
+| Login | Passenger home | Live map | Driver |
+| --- | --- | --- | --- |
+| ![Mobile login](docs/screenshots/login-mobile.png) | ![Mobile passenger home with bottom tabs](docs/screenshots/passenger-home-mobile.png) | ![Mobile live map](docs/screenshots/live-map-mobile.png) | ![Mobile driver vehicle picker](docs/screenshots/driver-tracking-mobile.png) |
 
 ## Quick start
 
