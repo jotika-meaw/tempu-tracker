@@ -26,6 +26,7 @@ import {
 } from "./lib/freshness";
 import { describeApiError } from "./lib/errors";
 import { Banner } from "./components/Banner";
+import { TEMPU_SVG, TempuIcon } from "./components/TempuIcon";
 
 type Snapshot = {
   response: ActiveVehiclesResponse;
@@ -38,15 +39,45 @@ type VehicleWithAge = PublicVehicle & {
 
 const CHATTOGRAM_CENTER: [number, number] = [22.3569, 91.7832];
 
+const vehicleIcons = new Map<string, L.DivIcon>();
+
+/** A map pin shaped like a tempu, labelled with its route number. */
 function createVehicleIcon(routeNumber: string): L.DivIcon {
   const safeNumber = routeNumber.replace(/[^0-9]/g, "");
-  return L.divIcon({
+  const cached = vehicleIcons.get(safeNumber);
+  if (cached) return cached;
+
+  const icon = L.divIcon({
     className: "tempu-marker",
-    html: `<span class="tempu-marker-badge">${safeNumber}</span><span class="tempu-marker-van" aria-hidden="true">🚐</span>`,
-    iconSize: [58, 36],
-    iconAnchor: [29, 18],
-    popupAnchor: [0, -20],
+    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${TEMPU_SVG}</span><span class="tempu-pin-route">${safeNumber}</span></span>`,
+    iconSize: [60, 58],
+    iconAnchor: [30, 56],
+    popupAnchor: [0, -52],
   });
+  vehicleIcons.set(safeNumber, icon);
+  return icon;
+}
+
+/**
+ * Leaflet measures its container once. Re-measure whenever the layout
+ * changes size (sidebar, phone rotation, embedded cards) so tiles never
+ * leave grey gaps.
+ */
+function KeepMapSized() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => map.invalidateSize({ animate: false }));
+    observer.observe(container);
+    const timer = window.setTimeout(() => map.invalidateSize({ animate: false }), 250);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [map]);
+
+  return null;
 }
 
 function FollowVehicles({
@@ -271,6 +302,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <KeepMapSized />
             <FollowVehicles vehicles={vehicles} filterKey={filter} />
             {vehicles.map((vehicle) => (
               <Marker
@@ -278,7 +310,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                 position={[vehicle.latitude, vehicle.longitude]}
                 icon={createVehicleIcon(vehicle.routeNumber)}
               >
-                <Popup>
+                <Popup autoPanPaddingTopLeft={[16, embedded ? 16 : 96]}>
                   <strong>
                     {t(language, "routeNumberLabel", {
                       number: vehicle.routeNumber,
@@ -302,12 +334,17 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             ))}
           </MapContainer>
 
+          {!embedded ? (
+            <div className="map-live-chip" aria-live="polite">
+              <span className="live-dot" aria-hidden="true" />
+              {t(language, "mapLiveCount", { count: vehicles.length })}
+            </div>
+          ) : null}
+
           {showLoadingOverlay ? (
-            <div className="map-overlay">
-              <div className="map-overlay-card">
-                <span className="map-overlay-icon" aria-hidden="true">
-                  ◌
-                </span>
+            <div className="map-status" role="status">
+              <span className="map-status-spinner" aria-hidden="true" />
+              <div>
                 <strong>{t(language, "mapLoadingTitle")}</strong>
                 <p>{t(language, "mapLoadingBody")}</p>
               </div>
@@ -327,11 +364,12 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
           ) : null}
 
           {showEmptyOverlay || offlineAndStale ? (
-            <div className="map-overlay">
-              <div className="map-overlay-card">
-                <span className="map-overlay-icon" aria-hidden="true">
-                  ◎
-                </span>
+            <div
+              className={offlineAndStale ? "map-status map-status-warning" : "map-status"}
+              role="status"
+            >
+              <TempuIcon size={44} />
+              <div>
                 <strong>
                   {offlineAndStale
                     ? t(language, "mapErrorTitle")
@@ -377,6 +415,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             {vehicles.map((vehicle) => (
               <li className="vehicle-item" key={vehicle.publicId}>
                 <div className="vehicle-item-header">
+                  <TempuIcon size={44} className="vehicle-item-icon" />
                   <span className="route-badge">{vehicle.routeNumber}</span>
                   <div className="vehicle-title">
                     <strong>{vehicle.routeName}</strong>

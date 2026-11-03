@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { t, type UiLanguage } from "../i18n";
 import { allTripStops, planTrip, type TripPlan } from "../routes";
 import { Banner } from "./Banner";
+import { Icon } from "./Icon";
 
 type TripPlannerProps = {
   language: UiLanguage;
@@ -29,7 +30,7 @@ export function TripPlanner({ language }: TripPlannerProps) {
     <section className="card trip-card" aria-labelledby="trip-title">
       <div className="section-heading">
         <div className="heading-icon" aria-hidden="true">
-          ⇄
+          <Icon name="route" size={20} />
         </div>
         <div>
           <h2 id="trip-title">{t(language, "tripTitle")}</h2>

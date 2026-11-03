@@ -5,6 +5,8 @@ import { t, type UiLanguage } from "../i18n";
 import { describeApiError } from "../lib/errors";
 import { DEMO_ACCOUNTS, type DemoAccount } from "../routes";
 import { Banner } from "./Banner";
+import { Icon } from "./Icon";
+import { TempuIcon } from "./TempuIcon";
 
 type LoginPageProps = {
   language: UiLanguage;
@@ -50,7 +52,7 @@ export function LoginPage({ language, languageSelect, onSignedIn }: LoginPagePro
       <header className="login-topbar">
         <div className="brand">
           <span className="brand-icon" aria-hidden="true">
-            T
+            <TempuIcon size={30} />
           </span>
           <span>
             <strong>tempu</strong>
@@ -61,6 +63,27 @@ export function LoginPage({ language, languageSelect, onSignedIn }: LoginPagePro
       </header>
 
       <main className="login-main" id="main-content">
+        <section className="login-hero" aria-labelledby="login-hero-title">
+          <h2 id="login-hero-title">{t(language, "loginHeroTitle")}</h2>
+          <p>{t(language, "loginHeroBody")}</p>
+          <ul>
+            <li>
+              <Icon name="route" size={18} /> {t(language, "loginHeroPoint1")}
+            </li>
+            <li>
+              <Icon name="sparkles" size={18} /> {t(language, "loginHeroPoint2")}
+            </li>
+            <li>
+              <Icon name="pulse" size={18} /> {t(language, "loginHeroPoint3")}
+            </li>
+          </ul>
+          <div className="login-hero-art" aria-hidden="true">
+            <span className="hero-road" />
+            <TempuIcon size={190} className="hero-tempu" />
+          </div>
+        </section>
+
+        <div className="login-panels">
         <section className="card login-card" aria-labelledby="login-title">
           <h1 id="login-title">{t(language, "loginTitle")}</h1>
           <p className="login-subtitle">{t(language, "loginSubtitle")}</p>
@@ -104,6 +127,9 @@ export function LoginPage({ language, languageSelect, onSignedIn }: LoginPagePro
           <div className="login-demo-list">
             {DEMO_ACCOUNTS.map((account) => (
               <article className="login-demo-account" key={account.username}>
+                <span className="login-demo-icon" aria-hidden="true">
+                  <Icon name={account.role === "driver" ? "steering" : "user"} size={20} />
+                </span>
                 <h3>
                   {account.role === "driver"
                     ? t(language, "loginDemoDriver")
@@ -141,6 +167,7 @@ export function LoginPage({ language, languageSelect, onSignedIn }: LoginPagePro
 
           <p className="assistant-footnote">{t(language, "loginDemoNote")}</p>
         </section>
+        </div>
       </main>
     </div>
   );

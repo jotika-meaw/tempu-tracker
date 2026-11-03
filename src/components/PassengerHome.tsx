@@ -1,4 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { fetchActiveVehicles } from "../api/client";
+import { allTripStops, tempuRoutes } from "../routes";
+import { Icon } from "./Icon";
+import { TempuIcon } from "./TempuIcon";
 import { t, type UiLanguage } from "../i18n";
 import { searchRoutes } from "../lib/search";
 import { DirectionStops } from "./DirectionStops";
@@ -24,6 +28,26 @@ export function PassengerHome({
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [formError, setFormError] = useState(false);
+  const [liveCount, setLiveCount] = useState<number | null>(null);
+  const stopCount = useMemo(() => allTripStops().length, []);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const response = await fetchActiveVehicles();
+        if (active) setLiveCount(response.vehicles.length);
+      } catch {
+        if (active) setLiveCount(null);
+      }
+    }
+    void load();
+    const intervalId = window.setInterval(() => void load(), 15_000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const results = useMemo(
     () => searchRoutes(submittedQuery),
@@ -63,17 +87,38 @@ export function PassengerHome({
         </div>
 
         <div className="hero-art" aria-hidden="true">
-          <span className="hero-ring hero-ring-one" />
-          <span className="hero-ring hero-ring-two" />
-          <span className="hero-pin">⌖</span>
-          <span className="hero-sparkle">✳</span>
+          <span className="hero-road" />
+          <TempuIcon size={150} className="hero-tempu" />
+          <span className="hero-stop hero-stop-one">লালদীঘি</span>
+          <span className="hero-stop hero-stop-two">জিইসি</span>
         </div>
+
+        <dl className="hero-stats">
+          <div className="hero-stat hero-stat-live">
+            <dt>
+              <span className="live-dot" aria-hidden="true" /> {t(language, "statLive")}
+            </dt>
+            <dd>{liveCount ?? "—"}</dd>
+          </div>
+          <div className="hero-stat">
+            <dt>
+              <Icon name="route" size={16} /> {t(language, "statRoutes")}
+            </dt>
+            <dd>{tempuRoutes.length}</dd>
+          </div>
+          <div className="hero-stat">
+            <dt>
+              <Icon name="stops" size={16} /> {t(language, "statStops")}
+            </dt>
+            <dd>{stopCount}</dd>
+          </div>
+        </dl>
       </section>
 
       <section className="card search-card" aria-labelledby="route-search-title">
         <div className="section-heading">
           <div className="heading-icon" aria-hidden="true">
-            ↗
+            <Icon name="search" size={20} />
           </div>
           <div>
             <h2 id="route-search-title">{t(language, "searchHeading")}</h2>

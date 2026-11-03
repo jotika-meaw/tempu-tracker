@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
+import "./theme.css";
 import { DriverPanel } from "./DriverPanel";
 import { LiveMap } from "./LiveMap";
 import { fetchHealth, setAuthRejectedHandler, setAuthToken } from "./api/client";
@@ -8,6 +9,8 @@ import { HealthBanner } from "./components/HealthBanner";
 import { PassengerHome } from "./components/PassengerHome";
 import { AssistantCard } from "./components/AssistantCard";
 import { LoginPage } from "./components/LoginPage";
+import { Icon, type IconName } from "./components/Icon";
+import { TempuIcon } from "./components/TempuIcon";
 import { t, type UiLanguage } from "./i18n";
 import { clearSession, loadSession, saveSession } from "./lib/session";
 
@@ -23,11 +26,11 @@ type RouteState = {
 const passengerNav: Array<{
   view: PassengerView;
   labelKey: "navSearch" | "navMap" | "navAssistant";
-  icon: string;
+  icon: IconName;
 }> = [
-  { view: "explore", labelKey: "navSearch", icon: "⌕" },
-  { view: "map", labelKey: "navMap", icon: "◎" },
-  { view: "assistant", labelKey: "navAssistant", icon: "✳" },
+  { view: "explore", labelKey: "navSearch", icon: "search" },
+  { view: "map", labelKey: "navMap", icon: "map" },
+  { view: "assistant", labelKey: "navAssistant", icon: "sparkles" },
 ];
 
 function routeFromHash(hash: string): RouteState {
@@ -212,7 +215,8 @@ function App() {
       onClick={signOut}
       title={session ? t(language, "signedInAs", { name: session.user.displayName }) : undefined}
     >
-      {t(language, "signOut")}
+      <Icon name="logout" size={16} />
+      <span className="sign-out-label">{t(language, "signOut")}</span>
     </button>
   );
 
@@ -241,7 +245,7 @@ function App() {
             aria-label="Tempu Tracker home"
           >
             <span className="brand-icon" aria-hidden="true">
-              T
+              <TempuIcon size={30} />
             </span>
             <span>
               <strong>tempu</strong>
@@ -280,7 +284,8 @@ function App() {
                 className="button button-secondary driver-back-button"
                 onClick={openMapInNewTab}
               >
-                {t(language, "driverMapNav")} <span aria-hidden="true">↗</span>
+                <Icon name="map" size={17} /> {t(language, "driverMapNav")}{" "}
+                <Icon name="external" size={15} />
               </button>
             )}
             <span className="driver-main-nav-label">
@@ -325,7 +330,7 @@ function App() {
           aria-label="Tempu Tracker home"
         >
           <span className="brand-icon" aria-hidden="true">
-            T
+            <TempuIcon size={30} />
           </span>
           <span>
             <strong>tempu</strong>
@@ -346,7 +351,7 @@ function App() {
               onClick={() => navigatePassenger(item.view)}
             >
               <span className="nav-icon" aria-hidden="true">
-                {item.icon}
+                <Icon name={item.icon} size={19} />
               </span>
               {t(language, item.labelKey)}
             </button>
@@ -356,7 +361,7 @@ function App() {
         <div className="sidebar-bottom">
           <div className="help-card">
             <span className="help-icon" aria-hidden="true">
-              ✳
+              <Icon name="sparkles" size={18} />
             </span>
             <strong>{t(language, "helpTitle")}</strong>
             <p>{t(language, "helpBody")}</p>
@@ -397,7 +402,7 @@ function App() {
               title={t(language, "signedInAs", { name: session.user.displayName })}
               aria-hidden="true"
             >
-              P
+              <Icon name="user" size={18} />
             </div>
           </div>
         </header>
@@ -517,6 +522,21 @@ function App() {
           </footer>
         </div>
       </main>
+
+      <nav className="bottom-tabs" aria-label={t(language, "menuPassenger")}>
+        {passengerNav.map((item) => (
+          <button
+            key={item.view}
+            type="button"
+            className={passengerView === item.view ? "bottom-tab active" : "bottom-tab"}
+            aria-current={passengerView === item.view ? "page" : undefined}
+            onClick={() => navigatePassenger(item.view)}
+          >
+            <Icon name={item.icon} size={22} />
+            <span>{t(language, item.labelKey)}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
