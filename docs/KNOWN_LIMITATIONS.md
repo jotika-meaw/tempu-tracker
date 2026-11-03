@@ -33,10 +33,10 @@ This document lists what the prototype does **not** do or has not yet proven. It
 
 ## 4. Persistence and scale
 
-- Without `MONGODB_URI`, the app runs in **explicit non-persistent memory mode**. A server restart removes all sessions.
+- The deployed API runs against MongoDB Atlas (persistent). Without `MONGODB_URI`, the app runs in **explicit non-persistent memory mode**. A server restart removes all sessions.
 - Memory mode is a single-process `Map`. It is not shared across multiple server instances, serverless functions, or horizontal replicas.
 - `memory-fallback` is used when MongoDB is configured but unreachable and `MONGODB_REQUIRED=false`. It is still non-persistent and labelled in the UI.
-- The MongoDB schema, indexes, TTL, and queries are implemented, but the real Atlas integration test was **skipped** because no `MONGODB_URI_TEST` was available.
+- The MongoDB schema, indexes, TTL, and queries are implemented and used by the deployed API, but the automated Atlas integration test was **skipped** because no `MONGODB_URI_TEST` was available.
 - The TTL monitor is not instantaneous; expired sessions are filtered by queries immediately, but physical deletion can lag.
 - The active list is capped at 100 vehicles. There is no pagination or clustering.
 - No load test, capacity test, or multi-region test has been run.
@@ -44,7 +44,7 @@ This document lists what the prototype does **not** do or has not yet proven. It
 
 ## 5. Meta AI
 
-- The endpoint (`https://api.meta.ai/v1`) and model (`muse-spark-1.3`) were verified through an authenticated model listing.
+- The endpoint (`https://api.meta.ai/v1`) and model (`muse-spark-1.2-contributor`, pinned in `server/config.ts`) were verified through an authenticated model listing.
 - **No real inference call was made** during automated testing, because no approval to consume provider credits was given. Answer quality, latency, refusal behaviour, and cost are unverified.
 - The prompt is grounded in the route dataset and aggregate live counts, and an output guard rejects unknown route numbers. That does not guarantee factual correctness, tone, or safety.
 - The AI can be wrong about directions, stop order, or whether a route is suitable. It is an assistance layer, not an authority.

@@ -4,6 +4,13 @@
 
 Tempu Tracker is a Bangla-first web app built for the Meta AI Developer Hackathon 2026. It combines a canonical dataset of 16 Chattogram tempu routes with genuine browser/device GPS sharing by drivers and a route-grounded AI assistant.
 
+## Live demo
+
+- **App:** https://tempu-tracker-client.vercel.app
+- **API health:** https://tempu-tracker-server.vercel.app/api/health (MongoDB Atlas connected, persistent; Meta AI configured with `muse-spark-1.2-contributor`)
+
+The live map only shows vehicles while a real driver is sharing GPS, so it is usually empty. To see a vehicle, open `#/driver` on a phone, start a journey, and open the app on a second device.
+
 > This is a working hackathon prototype, not a production transport service. Driver identity and vehicle documents are **not** verified. Live positions exist only while a driver deliberately shares device GPS. There is no fake movement or demo vehicle in the live map.
 
 ![Passenger home](docs/screenshots/passenger-home.png)
@@ -139,7 +146,7 @@ The frontend reads `/api/health` and shows a memory-mode or database-down banner
 
 ### MongoDB persistence setup
 
-The current local `server/.env` has no `MONGODB_URI`, so the app truthfully runs in memory mode. To enable persistence:
+The deployed API (`tempu-tracker-server.vercel.app`) runs against MongoDB Atlas and reports `mode: "mongodb", persistent: true`. Without a `MONGODB_URI` the app truthfully runs in memory mode. To enable persistence:
 
 1. Create a **MongoDB Atlas Free** cluster (or use another MongoDB deployment).
 2. In **Database Access**, create a database user with a strong password.
@@ -198,9 +205,9 @@ Current local result (29 Oct 2026):
 - Frontend: **17/17 tests passed**, build passed, lint clean.
 - Backend: **55 tests, 54 passed, 1 skipped** (MongoDB integration requires `MONGODB_URI_TEST`).
 - Driver access: passenger → driver and driver → passenger navigation verified in headless Chrome at desktop and 390 px mobile widths; UI GPS start/update/stop flow verified with Chrome geolocation emulation.
-- Database: **memory mode** because no `MONGODB_URI` is configured; persistence remains untested until a real Atlas test URI is provided.
+- Database: local checks ran in **memory mode**. The deployed API is connected to MongoDB Atlas (persistent); the automated Atlas integration test is still skipped until a test-only `MONGODB_URI_TEST` is provided.
 - Dependency audit: **0 vulnerabilities** after updating Capacitor CLI tooling.
-- Meta model listing: authenticated, 9 models visible, requested `muse-spark-1.3` present; **no inference call made** during automated checks.
+- Meta model listing: authenticated, 9 models visible, `muse-spark-1.2-contributor` (the pinned model) present; **no inference call made** during automated checks.
 
 See [TEST_REPORT.md](docs/TEST_REPORT.md) for exact output and untested areas.
 

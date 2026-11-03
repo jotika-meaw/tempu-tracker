@@ -3,6 +3,8 @@
 **Last local verification:** 29 October 2026 (Asia/Dhaka)
 **Working directory:** `E:\Meta Hackathon 2026\tempu-tracker`
 
+> **Note (3 November 2026):** this report records the 29 October local run. Since then the model was pinned to `muse-spark-1.2-contributor` in `server/config.ts` (references to `muse-spark-1.3` below are from the earlier run), and the deployed API at `tempu-tracker-server.vercel.app` runs against MongoDB Atlas with `persistent: true`. A re-run on 3 November gave the same results: frontend 17/17, backend 54 passed / 1 skipped, lint and typecheck clean.
+
 ## 1. Environment
 
 | Item | Value |

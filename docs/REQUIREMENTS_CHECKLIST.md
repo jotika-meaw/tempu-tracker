@@ -55,7 +55,7 @@ Legend: **Done** = implemented and evidenced; **Partial** = implemented with a s
 
 | # | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| E1 | Use MongoDB Atlas Free when credentials are configured | **Done, untested live** | `MongoTrackingStore` selected when `MONGODB_URI` present; real Atlas connection not tested here |
+| E1 | Use MongoDB Atlas Free when credentials are configured | **Done** | `MongoTrackingStore` selected when `MONGODB_URI` present; deployed API health reports `mode: mongodb, persistent: true` |
 | E2 | Official MongoDB driver | **Done** | `mongodb` 7.7.0 |
 | E3 | Indexes | **Done** | Unique token/public ID; route/status/last location; status/last location; TTL |
 | E4 | Schema validation | **Done** | `$jsonSchema` with strict validation |
@@ -69,7 +69,7 @@ Legend: **Done** = implemented and evidenced; **Partial** = implemented with a s
 
 | # | Requirement | Status | Evidence |
 | --- | --- | --- | --- |
-| F1 | Use verified Meta Model API endpoint and model | **Done** | `https://api.meta.ai/v1`, `muse-spark-1.3`; authenticated model listing |
+| F1 | Use verified Meta Model API endpoint and model | **Done** | `https://api.meta.ai/v1`, `muse-spark-1.2-contributor` (pinned); authenticated model listing |
 | F2 | Keep `MODEL_API_KEY` backend-only | **Done** | `server/config.ts`; no `VITE_*` secret; health hides key |
 | F3 | Route-grounded answers only | **Done, caveat** | Prompt includes verified route context; output guard rejects unknown route numbers. Facts still need human review |
 | F4 | Graceful AI errors | **Done** | `AI_NOT_CONFIGURED`, `AI_RATE_LIMITED`, `AI_TIMEOUT`, `AI_AUTH_FAILED`, `AI_UNAVAILABLE`, `AI_INVALID_RESPONSE` |
