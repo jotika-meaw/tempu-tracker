@@ -3,7 +3,7 @@
  * The driver declares which one they drive when they start sharing GPS;
  * it is not verified.
  */
-export const VEHICLE_TYPES = ["tempu", "cng", "human-hauler"] as const;
+export const VEHICLE_TYPES = ["tempu", "diesel-tempu", "human-hauler"] as const;
 
 export type VehicleType = (typeof VEHICLE_TYPES)[number];
 

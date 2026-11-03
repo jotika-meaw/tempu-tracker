@@ -3,6 +3,8 @@ import { fetchActiveVehicles } from "../api/client";
 import { allTripStops, tempuRoutes } from "../routes";
 import { Icon } from "./Icon";
 import { TempuIcon } from "./TempuIcon";
+import { DEMO_VEHICLE_COUNT } from "../lib/demoFleet";
+import { useDemoVehiclesEnabled } from "../lib/demoMode";
 import { t, type UiLanguage } from "../i18n";
 import { searchRoutes } from "../lib/search";
 import { DirectionStops } from "./DirectionStops";
@@ -30,6 +32,7 @@ export function PassengerHome({
   const [formError, setFormError] = useState(false);
   const [liveCount, setLiveCount] = useState<number | null>(null);
   const stopCount = useMemo(() => allTripStops().length, []);
+  const demoEnabled = useDemoVehiclesEnabled();
 
   useEffect(() => {
     let active = true;
@@ -98,7 +101,12 @@ export function PassengerHome({
             <dt>
               <span className="live-dot" aria-hidden="true" /> {t(language, "statLive")}
             </dt>
-            <dd>{liveCount ?? "—"}</dd>
+            <dd>
+              {liveCount ?? "—"}
+              {demoEnabled ? (
+                <span className="hero-stat-demo">{t(language, "statDemo", { count: DEMO_VEHICLE_COUNT })}</span>
+              ) : null}
+            </dd>
           </div>
           <div className="hero-stat">
             <dt>

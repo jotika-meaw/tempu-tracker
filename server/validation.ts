@@ -160,7 +160,7 @@ export function parseStartRequest(body: unknown): StartRequest {
     throw new ApiError(
       400,
       "INVALID_VEHICLE_TYPE",
-      "Vehicle type must be tempu, cng, or human-hauler."
+      "Vehicle type must be tempu, diesel-tempu, or human-hauler."
     );
   }
 

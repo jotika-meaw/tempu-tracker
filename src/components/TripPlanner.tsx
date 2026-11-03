@@ -3,6 +3,10 @@ import { t, type UiLanguage } from "../i18n";
 import { allTripStops, planTrip, type TripPlan } from "../routes";
 import { Banner } from "./Banner";
 import { Icon } from "./Icon";
+import { VehicleIcon } from "./TempuIcon";
+import { approachingDemoVehicle, demoVehiclesAt, DEMO_ROUTE_NUMBERS } from "../lib/demoFleet";
+import { useDemoVehiclesEnabled, useTickingNow } from "../lib/demoMode";
+import { VEHICLE_LABEL, vehicleTypeOf } from "../lib/vehicles";
 
 type TripPlannerProps = {
   language: UiLanguage;
@@ -13,6 +17,9 @@ export function TripPlanner({ language }: TripPlannerProps) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [plan, setPlan] = useState<TripPlan | null>(null);
+  const demoEnabled = useDemoVehiclesEnabled();
+  const now = useTickingNow(demoEnabled && Boolean(plan?.ok), 2_000);
+  const demoVehicles = demoEnabled && plan?.ok ? demoVehiclesAt(now) : [];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,6 +139,39 @@ export function TripPlanner({ language }: TripPlannerProps) {
                           })}
                         </p>
                         <p className="trip-leg-stops">{leg.stops.join(" → ")}</p>
+                        {demoEnabled && DEMO_ROUTE_NUMBERS.includes(leg.routeNumber)
+                          ? (() => {
+                              const coming = approachingDemoVehicle(
+                                demoVehicles,
+                                leg.routeNumber,
+                                leg.direction,
+                                leg.boardStop
+                              );
+                              if (!coming) {
+                                return (
+                                  <p className="trip-demo trip-demo-none">
+                                    {t(language, "demoNoneApproaching")}
+                                  </p>
+                                );
+                              }
+                              const type = vehicleTypeOf(coming.vehicle.vehicleType);
+                              const label = t(language, VEHICLE_LABEL[type]);
+                              return (
+                                <p className="trip-demo" aria-live="polite">
+                                  <VehicleIcon type={type} size={34} />
+                                  {coming.stopsAway === 0
+                                    ? t(language, "demoAtBoarding", {
+                                        vehicle: label,
+                                        stop: leg.boardStop,
+                                      })
+                                    : t(language, "demoApproaching", {
+                                        vehicle: label,
+                                        count: coming.stopsAway,
+                                      })}
+                                </p>
+                              );
+                            })()
+                          : null}
                         {leg.confidence === "partial" ? (
                           <p className="trip-leg-partial">{t(language, "tripPartial")}</p>
                         ) : null}

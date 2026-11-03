@@ -1443,3 +1443,137 @@ a:focus-visible {
     display: none;
   }
 }
+
+/* Demo vehicles: always visibly labelled as simulation */
+
+.tempu-marker-demo .tempu-pin-body {
+  border: 2px dashed var(--marigold);
+}
+
+.tempu-marker-demo .tempu-pin-pulse {
+  background: rgb(15 92 67 / 35%);
+}
+
+.tempu-pin-demo {
+  position: absolute;
+  top: -8px;
+  left: -6px;
+  padding: 0 5px;
+  border: 1.5px solid #fff;
+  border-radius: 6px;
+  background: var(--marigold);
+  color: #3b2900;
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 15px;
+}
+
+.popup-demo-tag,
+.vehicle-item-demo .vehicle-age {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--marigold);
+  color: #3b2900;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vehicle-item-demo {
+  border-style: dashed;
+  border-color: rgb(242 178 51 / 70%);
+}
+
+.map-demo-flag {
+  position: absolute;
+  bottom: 30px;
+  left: 14px;
+  z-index: 600;
+  max-width: calc(100% - 200px);
+  padding: 7px 12px;
+  border: 1px dashed var(--marigold);
+  border-radius: 12px;
+  background: rgb(253 241 214 / 95%);
+  color: var(--marigold-ink);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: var(--shadow);
+}
+
+.map-live-chip-demo {
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--marigold);
+  color: #3b2900;
+  font-size: 12px;
+}
+
+.demo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px dashed var(--marigold);
+  border-radius: 10px;
+  background: var(--marigold-soft);
+  color: var(--marigold-ink) !important;
+  font-size: 13px !important;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.demo-toggle input {
+  accent-color: var(--green);
+}
+
+.trip-demo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px !important;
+  padding: 4px 10px 4px 4px;
+  border: 1px dashed var(--marigold);
+  border-radius: 12px;
+  background: var(--marigold-soft);
+  color: var(--marigold-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trip-demo-none {
+  padding-left: 10px;
+  border-color: var(--border-strong);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.hero-stat-demo {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--marigold);
+  color: #3b2900;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+@media (max-width: 720px) {
+  .map-demo-flag {
+    right: 14px;
+    bottom: 76px;
+    max-width: none;
+  }
+
+  .demo-toggle {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+}

@@ -426,7 +426,7 @@ test("unknown API endpoints return structured 404 responses", async () => {
 test("drivers declare a vehicle type that the public map shows", async () => {
   const { app } = setup();
 
-  for (const vehicleType of ["tempu", "cng", "human-hauler"]) {
+  for (const vehicleType of ["tempu", "diesel-tempu", "human-hauler"]) {
     const started = await startJourney(app, { vehicleType });
     assert.equal(started.journey.vehicleType, vehicleType);
   }
@@ -437,7 +437,7 @@ test("drivers declare a vehicle type that the public map shows", async () => {
   const types = (active.body.vehicles as Array<{ vehicleType: string }>)
     .map((vehicle) => vehicle.vehicleType)
     .sort();
-  assert.deepEqual(types, ["cng", "human-hauler", "tempu", "tempu"]);
+  assert.deepEqual(types, ["diesel-tempu", "human-hauler", "tempu", "tempu"]);
 
   for (const vehicleType of ["bus", "", 3, null]) {
     const rejected = await request(app)

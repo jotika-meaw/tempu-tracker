@@ -31,7 +31,7 @@ Legend: **Done** = implemented and evidenced; **Partial** = implemented with a s
 | --- | --- | --- | --- |
 | C1 | Use only genuine browser/device GPS | **Done, caveat** | `navigator.geolocation.getCurrentPosition` + `watchPosition`; no sample coordinates or simulated movement. Browser GPS can still be spoofed by a determined user |
 | C2 | Explicit consent before sharing | **Done** | Checkbox + consent text; server requires `consent === true`; test rejects missing consent |
-| C3 | No fake movement or “demo vehicle” presented as live | **Done** | No seeded vehicles; empty map state; “No simulated or demo positions” copy |
+| C3 | No fake movement or “demo vehicle” presented as live | **Done** | Demo vehicles are simulated in the browser only, always tagged DEMO with a dashed border and a map notice, never sent to the server or AI, and can be switched off; real GPS pins carry no tag |
 | C4 | Clear permission-denied, unavailable, timeout states | **Done** | Driver error mapping and localized messages |
 | C5 | Stop sending on stop, permission loss, session expiry, page hide | **Done** | `clearWatch`, `pagehide`, `stopTracking`, `UNAUTHORIZED_SESSION` handling |
 | C6 | Do not show coordinates to the driver | **Done** | Driver UI shows only time, accuracy, session ID, expiry |

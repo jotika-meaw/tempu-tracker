@@ -10,13 +10,13 @@ export { DEFAULT_VEHICLE_TYPE, VEHICLE_TYPES, type VehicleType };
 
 export const VEHICLE_LABEL: Record<VehicleType, MessageKey> = {
   tempu: "vehicleTempu",
-  cng: "vehicleCng",
+  "diesel-tempu": "vehicleDiesel",
   "human-hauler": "vehicleHumanHauler",
 };
 
 export const VEHICLE_HINT: Record<VehicleType, MessageKey> = {
   tempu: "vehicleTempuHint",
-  cng: "vehicleCngHint",
+  "diesel-tempu": "vehicleDieselHint",
   "human-hauler": "vehicleHumanHaulerHint",
 };
 

@@ -25,8 +25,8 @@ export const VEHICLE_SVGS: Record<VehicleType, string> = {
   <rect x="2" y="29.5" width="60" height="4" rx="2" fill="#0A3F2E"/>
   ${WHEEL(10, 5.5)}${WHEEL(50, 6.5)}
 </svg>`,
-  // Green CNG auto-rickshaw with its black canopy.
-  cng: `<svg viewBox="0 0 64 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  // Green diesel tempu (three-wheeler) with its black canopy.
+  "diesel-tempu": `<svg viewBox="0 0 64 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
   <path d="M13 9.5Q14.5 3.5 22 3.5h26Q55 3.5 55 10v2.5H12z" fill="#1F2A26"/>
   <path d="M5 30v-6.5Q5 18 11 16.5L14 12h42v18z" fill="#1E9E5A"/>
   <path d="M9.4 17.6 12.4 13.5H19V20H8.6z" fill="#E7F3EC"/>

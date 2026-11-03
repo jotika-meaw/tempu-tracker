@@ -31,6 +31,11 @@ This document lists what the prototype does **not** do or has not yet proven. It
 - On Android, the WebView must be granted location permission and the page must be in the foreground. The manifest has permissions, but the APK has not been built/tested here.
 - No geofencing confirms that the driver is actually near the declared route.
 
+### Demo fleet
+
+- Demo vehicles are simulated in the browser. Their stop positions are approximate, placed by hand for routes 01, 02, 04, 15 and 17, and they move in straight lines between stops, not along roads. They are not field data and must not be used as real stop locations.
+- They are always labelled DEMO, are excluded from the AI's live counts, and are never stored or sent to the server.
+
 ### Sign-in
 
 - Sign-in uses two published demo accounts. There is no sign-up, password reset, or per-person account, so anyone can use either role. It separates the interfaces and gates GPS start and AI use; it is not identity verification.

@@ -28,6 +28,8 @@ import { describeApiError } from "./lib/errors";
 import { Banner } from "./components/Banner";
 import { TempuIcon, VehicleIcon } from "./components/TempuIcon";
 import { VEHICLE_SVGS } from "./components/vehicleSvgs";
+import { demoVehiclesAt } from "./lib/demoFleet";
+import { setDemoVehiclesEnabled, useDemoVehiclesEnabled } from "./lib/demoMode";
 import {
   VEHICLE_LABEL,
   VEHICLE_TYPES,
@@ -42,6 +44,9 @@ type Snapshot = {
 
 type VehicleWithAge = PublicVehicle & {
   currentAge: number;
+  /** Simulated demo vehicle, never from a driver's GPS. */
+  demo?: true;
+  nextStop?: string | null;
 };
 
 const CHATTOGRAM_CENTER: [number, number] = [22.3569, 91.7832];
@@ -49,15 +54,19 @@ const CHATTOGRAM_CENTER: [number, number] = [22.3569, 91.7832];
 const vehicleIcons = new Map<string, L.DivIcon>();
 
 /** A map pin showing the vehicle's type, labelled with its route number. */
-function createVehicleIcon(routeNumber: string, vehicleType: VehicleType): L.DivIcon {
+function createVehicleIcon(
+  routeNumber: string,
+  vehicleType: VehicleType,
+  demo = false
+): L.DivIcon {
   const safeNumber = routeNumber.replace(/[^0-9]/g, "");
-  const key = `${vehicleType}:${safeNumber}`;
+  const key = `${vehicleType}:${safeNumber}:${demo ? "demo" : "live"}`;
   const cached = vehicleIcons.get(key);
   if (cached) return cached;
 
   const icon = L.divIcon({
-    className: `tempu-marker tempu-marker-${vehicleType}`,
-    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${VEHICLE_SVGS[vehicleType]}</span><span class="tempu-pin-route">${safeNumber}</span></span>`,
+    className: `tempu-marker tempu-marker-${vehicleType}${demo ? " tempu-marker-demo" : ""}`,
+    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${VEHICLE_SVGS[vehicleType]}</span><span class="tempu-pin-route">${safeNumber}</span>${demo ? '<span class="tempu-pin-demo">DEMO</span>' : ""}</span>`,
     iconSize: [60, 58],
     iconAnchor: [30, 56],
     popupAnchor: [0, -52],
@@ -210,6 +219,15 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
   const offlineAndStale =
     Boolean(error) && Boolean(snapshot) && vehicles.length === 0;
 
+  const demoEnabled = useDemoVehiclesEnabled();
+  const demoVehicles: VehicleWithAge[] = demoEnabled
+    ? demoVehiclesAt(now)
+        .filter((vehicle) => !filter || vehicle.routeNumber === filter)
+        .map((vehicle) => ({ ...vehicle, currentAge: 0 }))
+    : [];
+  const mapVehicles = [...vehicles, ...demoVehicles];
+  const showDemoNotice = demoVehicles.length > 0;
+
   return (
     <section
       className={embedded ? "live-map-section live-map-embedded" : "live-map-section"}
@@ -287,6 +305,14 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             >
               {loading ? t(language, "commonLoading") : t(language, "mapRefresh")}
             </button>
+            <label className="demo-toggle">
+              <input
+                type="checkbox"
+                checked={demoEnabled}
+                onChange={(event) => setDemoVehiclesEnabled(event.target.checked)}
+              />
+              <span>{t(language, "demoToggle")}</span>
+            </label>
             {hiddenCount > 0 ? (
               <span className="stale-hint">
                 {t(language, "mapStaleHidden", { count: hiddenCount })}
@@ -311,14 +337,24 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <KeepMapSized />
-            <FollowVehicles vehicles={vehicles} filterKey={filter} />
-            {vehicles.map((vehicle) => (
+            <FollowVehicles vehicles={mapVehicles} filterKey={`${filter}:${demoEnabled}`} />
+            {mapVehicles.map((vehicle) => (
               <Marker
                 key={vehicle.publicId}
                 position={[vehicle.latitude, vehicle.longitude]}
-                icon={createVehicleIcon(vehicle.routeNumber, vehicleTypeOf(vehicle.vehicleType))}
+                icon={createVehicleIcon(
+                  vehicle.routeNumber,
+                  vehicleTypeOf(vehicle.vehicleType),
+                  Boolean(vehicle.demo)
+                )}
               >
                 <Popup autoPanPaddingTopLeft={[16, embedded ? 16 : 96]}>
+                  {vehicle.demo ? (
+                    <>
+                      <span className="popup-demo-tag">{t(language, "demoTag")}</span>
+                      <br />
+                    </>
+                  ) : null}
                   <strong>
                     {t(language, "routeNumberLabel", {
                       number: vehicle.routeNumber,
@@ -333,12 +369,24 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                   <br />
                   {t(language, VEHICLE_LABEL[vehicleTypeOf(vehicle.vehicleType)])}
                   <br />
-                  {t(language, "mapLastUpdate")}:{" "}
-                  {formatAge(vehicle.currentAge, language)}
-                  <br />
-                  {t(language, "mapSource")}
-                  <br />
-                  <em>{t(language, "mapNotVerified")}</em>
+                  {vehicle.demo ? (
+                    <>
+                      {vehicle.nextStop
+                        ? t(language, "demoNextStop", { stop: vehicle.nextStop })
+                        : t(language, "demoAtTerminal")}
+                      <br />
+                      <em>{t(language, "demoNotReal")}</em>
+                    </>
+                  ) : (
+                    <>
+                      {t(language, "mapLastUpdate")}:{" "}
+                      {formatAge(vehicle.currentAge, language)}
+                      <br />
+                      {t(language, "mapSource")}
+                      <br />
+                      <em>{t(language, "mapNotVerified")}</em>
+                    </>
+                  )}
                 </Popup>
               </Marker>
             ))}
@@ -348,6 +396,17 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             <div className="map-live-chip" aria-live="polite">
               <span className="live-dot" aria-hidden="true" />
               {t(language, "mapLiveCount", { count: vehicles.length })}
+              {showDemoNotice ? (
+                <span className="map-live-chip-demo">
+                  {t(language, "demoCount", { count: demoVehicles.length })}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+
+          {showDemoNotice ? (
+            <div className="map-demo-flag" role="note">
+              {t(language, "demoMapFlag")}
             </div>
           ) : null}
 
@@ -373,7 +432,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
             </div>
           ) : null}
 
-          {showEmptyOverlay || offlineAndStale ? (
+          {(showEmptyOverlay || offlineAndStale) && !showDemoNotice ? (
             <div
               className={offlineAndStale ? "map-status map-status-warning" : "map-status"}
               role="status"
@@ -423,7 +482,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
           </span>
         </div>
 
-        {vehicles.length === 0 ? (
+        {mapVehicles.length === 0 ? (
           <p className="empty-list-text">
             {error
               ? t(language, "mapErrorBody")
@@ -431,8 +490,11 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
           </p>
         ) : (
           <ul className="vehicle-list">
-            {vehicles.map((vehicle) => (
-              <li className="vehicle-item" key={vehicle.publicId}>
+            {mapVehicles.map((vehicle) => (
+              <li
+                className={vehicle.demo ? "vehicle-item vehicle-item-demo" : "vehicle-item"}
+                key={vehicle.publicId}
+              >
                 <div className="vehicle-item-header">
                   <VehicleIcon
                     type={vehicleTypeOf(vehicle.vehicleType)}
@@ -450,13 +512,27 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                     </span>
                   </div>
                   <span className="vehicle-age">
-                    {error ? `${t(language, "mapLastKnown")} · ` : ""}
-                    {formatAge(vehicle.currentAge, language)}
+                    {vehicle.demo
+                      ? t(language, "demoTag")
+                      : `${error ? `${t(language, "mapLastKnown")} · ` : ""}${formatAge(
+                          vehicle.currentAge,
+                          language
+                        )}`}
                   </span>
                 </div>
                 <p className="vehicle-path">
                   {vehicle.startStop} → {vehicle.endStop}
                 </p>
+                {vehicle.demo ? (
+                  <div className="vehicle-meta">
+                    <span>
+                      {vehicle.nextStop
+                        ? t(language, "demoNextStop", { stop: vehicle.nextStop })
+                        : t(language, "demoAtTerminal")}
+                    </span>
+                    <span>{t(language, "demoNotReal")}</span>
+                  </div>
+                ) : (
                 <div className="vehicle-meta">
                   <span>
                     {t(language, "mapVehicleLabel", {
@@ -475,6 +551,7 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                     {formatTime(vehicle.lastLocationAt, language)}
                   </span>
                 </div>
+                )}
               </li>
             ))}
           </ul>
