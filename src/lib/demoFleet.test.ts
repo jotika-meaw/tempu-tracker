@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getDirectionData, tempuRoutes } from "../routes";
 import {
+  DEMO_ROUTE_LINES,
   DEMO_ROUTE_NUMBERS,
   DEMO_SECONDS_PER_STOP,
   DEMO_VEHICLE_COUNT,
@@ -62,5 +63,15 @@ describe("demo fleet", () => {
     expect(approachingDemoVehicle(vehicles, "15", "outbound", stops[1])?.stopsAway).toBe(0);
     expect(approachingDemoVehicle(vehicles, "15", "outbound", stops[0])).toBeNull();
     expect(approachingDemoVehicle(vehicles, "11", "outbound", "সিডিএ")).toBeNull();
+  });
+
+  it("follows road paths, not straight lines between stops", () => {
+    expect(DEMO_ROUTE_LINES).toHaveLength(5);
+    for (const line of DEMO_ROUTE_LINES) {
+      expect(line.points.length).toBeGreaterThan(50);
+    }
+    // Vehicles report which way they face so the side-view icon can flip.
+    const facing = new Set(demoVehiclesAt(T0).map((vehicle) => vehicle.facingRight));
+    expect(facing.size).toBe(2);
   });
 });

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   Marker,
+  Polyline,
   Popup,
   TileLayer,
   useMap,
@@ -28,7 +29,7 @@ import { describeApiError } from "./lib/errors";
 import { Banner } from "./components/Banner";
 import { TempuIcon, VehicleIcon } from "./components/TempuIcon";
 import { VEHICLE_SVGS } from "./components/vehicleSvgs";
-import { demoVehiclesAt } from "./lib/demoFleet";
+import { DEMO_ROUTE_LINES, demoVehiclesAt } from "./lib/demoFleet";
 import { setDemoVehiclesEnabled, useDemoVehiclesEnabled } from "./lib/demoMode";
 import {
   VEHICLE_LABEL,
@@ -47,6 +48,7 @@ type VehicleWithAge = PublicVehicle & {
   /** Simulated demo vehicle, never from a driver's GPS. */
   demo?: true;
   nextStop?: string | null;
+  facingRight?: boolean;
 };
 
 const CHATTOGRAM_CENTER: [number, number] = [22.3569, 91.7832];
@@ -57,16 +59,17 @@ const vehicleIcons = new Map<string, L.DivIcon>();
 function createVehicleIcon(
   routeNumber: string,
   vehicleType: VehicleType,
-  demo = false
+  demo = false,
+  facingRight = false
 ): L.DivIcon {
   const safeNumber = routeNumber.replace(/[^0-9]/g, "");
-  const key = `${vehicleType}:${safeNumber}:${demo ? "demo" : "live"}`;
+  const key = `${vehicleType}:${safeNumber}:${demo ? "demo" : "live"}:${facingRight ? "r" : "l"}`;
   const cached = vehicleIcons.get(key);
   if (cached) return cached;
 
   const icon = L.divIcon({
     className: `tempu-marker tempu-marker-${vehicleType}${demo ? " tempu-marker-demo" : ""}`,
-    html: `<span class="tempu-pin"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${VEHICLE_SVGS[vehicleType]}</span><span class="tempu-pin-route">${safeNumber}</span>${demo ? '<span class="tempu-pin-demo">DEMO</span>' : ""}</span>`,
+    html: `<span class="tempu-pin${facingRight ? " tempu-pin-right" : ""}"><span class="tempu-pin-pulse"></span><span class="tempu-pin-body">${VEHICLE_SVGS[vehicleType]}</span><span class="tempu-pin-route">${safeNumber}</span>${demo ? '<span class="tempu-pin-demo">DEMO</span>' : ""}</span>`,
     iconSize: [60, 58],
     iconAnchor: [30, 56],
     popupAnchor: [0, -52],
@@ -337,6 +340,25 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <KeepMapSized />
+            {demoEnabled
+              ? DEMO_ROUTE_LINES.filter((line) => !filter || line.routeNumber === filter).map(
+                  (line) => (
+                    <Polyline
+                      key={line.routeNumber}
+                      positions={line.points}
+                      interactive={false}
+                      pathOptions={{
+                        className: "demo-route-line",
+                        color: "#0F5C43",
+                        weight: 6,
+                        opacity: 0.5,
+                        lineCap: "round",
+                        lineJoin: "round",
+                      }}
+                    />
+                  )
+                )
+              : null}
             <FollowVehicles vehicles={mapVehicles} filterKey={`${filter}:${demoEnabled}`} />
             {mapVehicles.map((vehicle) => (
               <Marker
@@ -345,7 +367,8 @@ export function LiveMap({ language, embedded = false }: LiveMapProps) {
                 icon={createVehicleIcon(
                   vehicle.routeNumber,
                   vehicleTypeOf(vehicle.vehicleType),
-                  Boolean(vehicle.demo)
+                  Boolean(vehicle.demo),
+                  Boolean(vehicle.facingRight)
                 )}
               >
                 <Popup autoPanPaddingTopLeft={[16, embedded ? 16 : 96]}>

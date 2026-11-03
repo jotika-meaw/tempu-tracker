@@ -33,7 +33,7 @@ This document lists what the prototype does **not** do or has not yet proven. It
 
 ### Demo fleet
 
-- Demo vehicles are simulated in the browser. Their stop positions are approximate, placed by hand for routes 01, 02, 04, 15 and 17, and they move in straight lines between stops, not along roads. They are not field data and must not be used as real stop locations.
+- Demo vehicles are simulated in the browser. Their stop positions are approximate, placed by hand for routes 01, 02, 04, 15 and 17, snapped to the nearest ground-level named road. Paths come from the public OSRM car router, routed leg by leg; where one-way streets would force a long loop the opposite direction is used, and about ten short hops that still looped are straight lines. They are not field data and must not be used as real stop locations.
 - They are always labelled DEMO, are excluded from the AI's live counts, and are never stored or sent to the server.
 
 ### Sign-in

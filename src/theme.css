@@ -1577,3 +1577,62 @@ a:focus-visible {
     justify-content: center;
   }
 }
+
+
+/* Transparent vehicle icons: the vehicle itself sits on the map, with a
+   soft ground shadow instead of a white card. */
+.tempu-pin-body {
+  top: 4px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tempu-pin-body::after {
+  display: none !important;
+}
+
+.tempu-pin-body svg {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgb(16 35 28 / 35%));
+  transition: transform 300ms var(--ease-out);
+}
+
+.tempu-pin-right .tempu-pin-body svg {
+  transform: scaleX(-1);
+}
+
+.tempu-pin::before {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 40px;
+  height: 9px;
+  margin-left: -20px;
+  border-radius: 50%;
+  background: rgb(16 35 28 / 18%);
+  content: "";
+}
+
+.tempu-marker-demo .tempu-pin::before {
+  border: 1.5px dashed var(--marigold);
+  background: rgb(242 178 51 / 18%);
+}
+
+.tempu-marker-demo .tempu-pin-body {
+  border: 0 !important;
+}
+
+.tempu-pin-pulse {
+  bottom: 2px !important;
+}
+
+.vehicle-item-icon {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.demo-route-line {
+  stroke-dasharray: none;
+}
